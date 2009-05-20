@@ -1,0 +1,12 @@
+truncate: [ tl_my_table ]
+
+tl_my_table:
+  one:
+    id: 1
+    pid: 2
+    tstamp: 0
+
+  two:
+    id: 2
+    pid: 2
+    tstamp: 0

@@ -1,0 +1,108 @@
+This is the framework module for Typolight. It aims to make the life of
+developpers coming from Rails or Symfony easier.
+
+Its components are :
+
+- EModel : an enhancement of the basic model class ( with dynamic finders,
+  associations, and others )
+
+- ManyToManyCheckbox : a widget to handle many to many associations through
+  join tables.
+
+- Route : a model to handle routing in Typolight.
+
+- HardRoutesList, RoutesWizard, ParamWizard : so helpers module for managing
+  routes in backend.
+
+- Json : a model to handle json response.
+
+- scripts : a php console and a mysql console.
+
+- tests : a testing layer
+
+
+
+------
+config
+------
+put the informations about your databases in config/config.yml. Beware not to
+put empty lines, spyc does not handle them.
+
+dev = the normal database
+test = the database where to switch when launching tests
+
+
+
+---------------
+The model layer
+---------------
+
+The core Model class of Typolight is underused. It is a singleton, mostly used
+by User and all the sql request are hand coded.
+
+The EModel bring some sugar in this. It redeclares the __construct() function as
+public, it let you manage some associations and brings a dynamic finder.
+
+The many to many association can be handled by to ManyToManyCheckbox.
+
+
+
+---------------
+The route layer
+---------------
+
+Routes let you have more control on the url. You can define a route name, its params
+and tell where to go when it matches.
+
+Routes can be defined in $GLOBALS[ 'TL_ROUTES' ] or in the database, through the route
+backend module.
+
+RoutedModule should be used instead of Module for frontend modules. It parse the params,
+find what action to launch and which format to send back ( html or json ).
+
+
+
+--------------
+The test layer
+--------------
+
+If you are me, you love both Cucumber and Typolight. The test layer bring Cucumber in
+Typolight with the help a webrat and nokogiri. If you like these, you'll enjoy it, else
+you can simply discard the tests/ directory.
+
+It uses also phpspec for managing behaviour testing. A slightly modified version of phpspec
+can be found in lib/ .
+
+In the tests/fixtures directory, you must provide a fixtures.sql file that will be loaded
+in the test database. You can dump the current dev db as a fixture file with the rake task
+db:prepare ( this also load the fixture files in the test database ).
+
+Then, each .yml file in this directory is loaded in this database. It must map some database
+rows. You can specify which table to truncate in a yaml list. An example file is provided.
+
+
+
+-------
+scripts
+-------
+
+"console" provide a php shell that can access typolight classes.
+"dbconsole" launch a mysql shell connected to a db specified in config.yml
+
+Each one can be passed an argument, the environment from where to run ( dev
+or test )
+
+The rakefile provide several tasks. To list them, launch :
+rake --tasks
+
+
+----------------
+Third party libs
+----------------
+
+The framework module include a copy of :
+- phpspec, by Pádraic Brady and Travis Swicegood
+- spyc, by Chris Wanstrath and Vlad Andersen 
+- sfConsolePlugin, by Geoffrey Bachelet
+
+

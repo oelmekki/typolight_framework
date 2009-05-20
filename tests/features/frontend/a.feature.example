@@ -1,0 +1,10 @@
+Fonctionnalité: Gestion des commentaires
+  Afin d'enrichir le débat
+  En tant que visiteur
+  Je dois pouvoir faire un commentaire
+
+  Scénario: Ecrire un commentaire
+    Lorsque je vais sur un article
+    Et que je remplis le champs "commentaire" avec "bonjour"
+    Et que je click sur "envoyer"
+    Alors je dois voir "votre commentaire a été posté"

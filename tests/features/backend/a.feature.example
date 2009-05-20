@@ -1,0 +1,9 @@
+Fonctionnalité: Afin de pouvoir communiquer
+  En tant qu'administrateur
+  Je dois pouvoir écrire des articles
+
+Scénario: créer un nouvel article
+  Lorsque je vais sur le backend
+  Et que je suis le lien "nouvel article"
+  Alors je dois voir "Edit record"
+

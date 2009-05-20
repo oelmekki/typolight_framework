@@ -1,0 +1,9 @@
+.*.swp
+.console_history
+config/config.yml
+tests/features/support/logs/
+tests/features/frontend/*.feature
+tests/features/backend/*.feature
+tests/fixtures/fixtures.sql
+tests/fixtures/*.yml
+tests/specs/*Spec.php

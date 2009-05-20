@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+require 'yaml'
+require "#{File.expand_path(File.join(File.dirname(__FILE__), '..', 'config', 'init'))}"
+include Framework
+
+env = ARGV[0]
+env ||= 'dev'
+
+db = Conf[ 'mysql' ][ env ]
+
+exec( "mysql -h#{db['host']} -u#{db['user']} -p#{db['password']} #{db['database']}" )
