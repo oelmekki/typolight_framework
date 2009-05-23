@@ -104,5 +104,6 @@ The framework module include a copy of :
 - phpspec, by Pádraic Brady and Travis Swicegood
 - spyc, by Chris Wanstrath and Vlad Andersen 
 - sfConsolePlugin, by Geoffrey Bachelet
+- addLiveEvent, by Yannick Croissant
 
 
