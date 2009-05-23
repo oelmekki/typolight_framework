@@ -276,7 +276,7 @@ abstract class EModel extends Model
   protected function child( $class )
   {
     $child = new $class();
-    $find = "find_first_by_" . strtolower( get_class() ) . "_id";
+    $find = "find_first_by_" . strtolower( get_class( $this ) ) . "_id";
     $child->$find( $this->id );
     return $child;
   }
@@ -290,7 +290,7 @@ abstract class EModel extends Model
   protected function children( $class )
   {
     $children = new $class();
-    $children_field = strtolower( get_class() ) . "_id";
+    $children_field = strtolower( get_class( $this ) ) . "_id";
 
     if ( ! $children->hasField( $children_field ) )
     {
