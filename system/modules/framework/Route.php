@@ -182,6 +182,24 @@ class Route extends EModel
 
 
   /**
+   * find a clean url from a route name, internationalized version.
+   * Routes should be name as : language_code + '_' + name
+   * ex: fr_home
+   *
+   * @arg string
+   * @arg mixed
+   * @return string
+   */
+  public static function composeI18n( $name, $params=array(), $format = 'html' )
+  {
+    global $objPage;
+    $name = ( strlen( $objPage->language ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ] ) . '_' . $name;
+    return Route::compose( $name, $params, $format );
+  }
+
+
+
+  /**
    * HOOK for getPageIdFromUrl :
    * parse routes
    * @arg array
