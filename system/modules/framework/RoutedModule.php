@@ -103,6 +103,7 @@ abstract class RoutedModule extends Module
   public function compile()
   {
     $action = $this->action;
+    $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/addLiveEvent.js';
 
     $layout = 'fe_' . $this->controller . '_layout';
     try
