@@ -57,12 +57,56 @@ abstract class RoutedModule extends Module
     {
       $this->import( 'Json' );
     }
-
   }
 
   public function __destruct()
   {
     $_SESSION[ 'flash' ] = $this->nextFlash ;
+  }
+
+
+
+  /**
+   * Check if a getter method exists
+   *
+   * @param string  the attribute name
+   * @return mixed
+   */
+  public function __get( $key )
+  {
+    $firstLetter = substr( $key, 0, 1 );
+    $rest = substr( $key, 1 );
+    $method_name = 'get' . strtoupper( $firstLetter ) . $rest;
+
+    if ( is_callable( $this, $method_name ) )
+    {
+      return $this->$method_name();
+    }
+
+    return parent::__get( $key );
+  }
+
+
+
+  /**
+   * Check if a setter method exists
+   *
+   * @param string  the attribute name
+   * @param string  the attribute value
+   * @return mixed
+   */
+  public function __set( $key, $value )
+  {
+    $firstLetter = substr( $key, 0, 1 );
+    $rest = substr( $key, 1 );
+    $method_name = 'set' . strtoupper( $firstLetter ) . $rest;
+
+    if ( is_callable( $this, $method_name ) )
+    {
+      return $this->$method_name( $value );
+    }
+
+    return parent::__set( $key, $value );
   }
 
 
@@ -110,6 +154,8 @@ abstract class RoutedModule extends Module
     {
       $this->getTemplate( $layout );
       $layout = new FrontendTemplate( $layout );
+      $layout->flash = $this->lastFlash;
+      $layout->lang = $this->lang;
     }
     catch ( Exception $e )
     {

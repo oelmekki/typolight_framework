@@ -46,6 +46,7 @@ abstract class EModel extends Model
   const FIND_DELIM  = '(_and_|_or_|_and_not_)';
   const FIND_ORDER  = '_order_by_';
 
+
   /**
    * Arrays to manage associations
    */
@@ -55,12 +56,16 @@ abstract class EModel extends Model
   protected $hasOneThrough = array();
   protected $manyToMany = array();
 
+
   /**
    * Array to list attributes that can be send through json.
    * Empty by default for security reasons.
    */
   protected $jsonable = array();
 
+
+  /* language array */
+  protected $lang;
 
 
   /**
@@ -71,11 +76,65 @@ abstract class EModel extends Model
   public function __construct( $id = false )
   {
     parent::__construct();
+
+    $language = ( $objPage and strlen( $objPage->language ) ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ] );
+    if ( ! isset( $GLOBALS[ 'TL_LANG' ][ 'MSC' ] ) )
+    {
+      $this->loadLanguageFile( 'default', $language );
+    }
+
+    $this->lang = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
+
     if ( $id !== false )
     {
       $this->findBy( 'id', $id );
     }
   }
+
+
+  /**
+   * Check if a getter method exists
+   *
+   * @param string  the attribute name
+   * @return mixed
+   */
+  public function __get( $key )
+  {
+    $firstLetter = substr( $key, 0, 1 );
+    $rest = substr( $key, 1 );
+    $method_name = 'get' . strtoupper( $firstLetter ) . $rest;
+
+    if ( is_callable( $this, $method_name ) )
+    {
+      return $this->$method_name();
+    }
+
+    return parent::__get( $key );
+  }
+
+
+
+  /**
+   * Check if a setter method exists
+   *
+   * @param string  the attribute name
+   * @param string  the attribute value
+   * @return mixed
+   */
+  public function __set( $key, $value )
+  {
+    $firstLetter = substr( $key, 0, 1 );
+    $rest = substr( $key, 1 );
+    $method_name = 'set' . strtoupper( $firstLetter ) . $rest;
+
+    if ( is_callable( $this, $method_name ) )
+    {
+      return $this->$method_name( $value );
+    }
+
+    return parent::__set( $key, $value );
+  }
+
 
 
   /**
