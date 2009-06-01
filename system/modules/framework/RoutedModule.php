@@ -78,7 +78,7 @@ abstract class RoutedModule extends Module
     $rest = substr( $key, 1 );
     $method_name = 'get' . strtoupper( $firstLetter ) . $rest;
 
-    if ( is_callable( $this, $method_name ) )
+    if ( method_exists( $this, $method_name ) )
     {
       return $this->$method_name();
     }
@@ -101,7 +101,7 @@ abstract class RoutedModule extends Module
     $rest = substr( $key, 1 );
     $method_name = 'set' . strtoupper( $firstLetter ) . $rest;
 
-    if ( is_callable( $this, $method_name ) )
+    if ( method_exists( $this, $method_name ) )
     {
       return $this->$method_name( $value );
     }

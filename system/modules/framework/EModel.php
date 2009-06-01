@@ -68,6 +68,11 @@ abstract class EModel extends Model
   protected $lang;
 
 
+  /* errors */
+  protected $arrErrors = array();
+
+
+
   /**
    * Let this be public, instead
    * Let directly find a record if an id is specified
@@ -77,7 +82,7 @@ abstract class EModel extends Model
   {
     parent::__construct();
 
-    $language = ( $objPage and strlen( $objPage->language ) ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ] );
+    $language = ( $objPage and strlen( $objPage->language ) ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ];
     if ( ! isset( $GLOBALS[ 'TL_LANG' ][ 'MSC' ] ) )
     {
       $this->loadLanguageFile( 'default', $language );
@@ -104,7 +109,7 @@ abstract class EModel extends Model
     $rest = substr( $key, 1 );
     $method_name = 'get' . strtoupper( $firstLetter ) . $rest;
 
-    if ( is_callable( $this, $method_name ) )
+    if ( method_exists( $this, $method_name ) )
     {
       return $this->$method_name();
     }
@@ -127,7 +132,7 @@ abstract class EModel extends Model
     $rest = substr( $key, 1 );
     $method_name = 'set' . strtoupper( $firstLetter ) . $rest;
 
-    if ( is_callable( $this, $method_name ) )
+    if ( method_exists( $this, $method_name ) )
     {
       return $this->$method_name( $value );
     }
@@ -143,8 +148,90 @@ abstract class EModel extends Model
   public function save()
   {
     $this->tstamp = time();
-    return parent::save();
+    if ( $this->validate() )
+    {
+      return parent::save();
+    }
+
+    else
+    {
+      return false;
+    }
   }
+
+
+
+  /**
+   * Override this method to add some validation
+   * You can add errors with setError() 
+   *
+   * @return boolean
+   */
+  public function validate()
+  {
+    return true;
+  }
+
+
+
+  /**
+   * Add an error to the error array
+   * @param string  the error message
+   * @param string  the attribute on which the error occurs
+   */
+  public function setError( $msg, $attribute = 'main' )
+  {
+    $this->arrErrors[ $attribute ][] = $msg;
+  }
+
+
+
+  /**
+   * Get the errors
+   * @return array
+   */
+  public function getErrors()
+  {
+    return $this->arrErrors;
+  }
+
+
+
+  /**
+   * Get the errors on a particular attribute
+   * @arg string    the attribute
+   * @return array  the errors
+   */
+  public function errorsOn( $attribute )
+  {
+    return $this->arrErrors[ $attribute ];
+  }
+
+
+
+  /**
+   * Return true if there are errors
+   * @param string    the attribute to test
+   * @return boolean
+   */
+  public function hasErrors( $attribute = false )
+  {
+    if ( $attribute )
+    {
+      return ( count( $this->arrErrors[ $attribute ] ) ? true : false );
+    }
+
+    else
+    {
+      foreach ( $this->arrErrors as $attr )
+      {
+        if ( count( $attr ) ) return true;
+      }
+
+      return false;
+    }
+  }
+
 
 
   /**
@@ -501,7 +588,7 @@ abstract class EModel extends Model
 
       else
       {
-        $delim = $delims[$i-1] ;
+        $delim = $delims[$i-1][0] ;
         $delim = str_replace( '_', ' ', $delim ) ;
         $query .= sprintf( "%s %s = ? ", $delim, $field ) ;
       }
