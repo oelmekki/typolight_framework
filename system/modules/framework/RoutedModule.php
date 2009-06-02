@@ -44,6 +44,8 @@ abstract class RoutedModule extends Module
   protected $isJson;
   protected $sendJson = false;
   protected $lang;
+  protected $arrCache = array();
+  protected $uncachable = array();
 
   public function __construct( Database_Result $objModule, $strColumn = 'main' )
   {
@@ -76,11 +78,22 @@ abstract class RoutedModule extends Module
   {
     $firstLetter = substr( $key, 0, 1 );
     $rest = substr( $key, 1 );
-    $method_name = 'get' . strtoupper( $firstLetter ) . $rest;
+    $getter = 'get' . strtoupper( $firstLetter ) . $rest;
 
-    if ( method_exists( $this, $method_name ) )
+    if ( method_exists( $this, $getter ) )
     {
-      return $this->$method_name();
+      if ( in_array( $key, $this->arrCache ) and ! in_array( $key, $this->uncachable ) )
+      {
+        return $this->arrCache[ $key ];
+      }
+
+      $result = $this->$getter();
+      if ( ! in_array( $key, $this->uncachable ) )
+      {
+        $this->arrCache[ $key ] = $result;
+      }
+
+      return $result;
     }
 
     return parent::__get( $key );
@@ -99,11 +112,21 @@ abstract class RoutedModule extends Module
   {
     $firstLetter = substr( $key, 0, 1 );
     $rest = substr( $key, 1 );
-    $method_name = 'set' . strtoupper( $firstLetter ) . $rest;
+    $setter = 'set' . strtoupper( $firstLetter ) . $rest;
 
-    if ( method_exists( $this, $method_name ) )
+    if ( method_exists( $this, $setter ) )
     {
-      return $this->$method_name( $value );
+      return $this->$setter( $value );
+    }
+
+    else
+    {
+      $getter = 'get' . strtoupper( $firstLetter ) . $rest;
+      if ( method_exists( $this, $getter ) )
+      {
+        $this->arrCache[ $key ] = $value;
+        return true;
+      }
     }
 
     return parent::__set( $key, $value );
