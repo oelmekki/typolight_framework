@@ -16,22 +16,7 @@ Its components are :
 
 - Json : a model to handle json response.
 
-- scripts : a php console and a mysql console.
-
-- tests : a testing layer
-
-
-
-------
-config
-------
-put the informations about your databases in config/config.yml. Beware not to
-put empty lines, spyc does not handle them.
-
-dev = the normal database
-test = the database where to switch when launching tests
-
-
+- EventBackendModule : a module to build an event driven backend module
 
 ---------------
 The model layer
@@ -61,39 +46,25 @@ RoutedModule should be used instead of Module for frontend modules. It parse the
 find what action to launch and which format to send back ( html or json ).
 
 
+------------------
+EventBackendModule
+------------------
 
---------------
-The test layer
---------------
+This module is an helper for building backend module without dca.
 
-If you are me, you love both Cucumber and Typolight. The test layer bring Cucumber in
-Typolight with the help a webrat and nokogiri. If you like these, you'll enjoy it, else
-you can simply discard the tests/ directory.
+A GET 'action' param can be use to select the method get_THE_VALUE.
+A POST action array param can be used to, letting you launching an
+action by the name of a button, with several button in the same form.
 
-It uses also phpspec for managing behaviour testing. A slightly modified version of phpspec
-can be found in lib/ .
+eg:
+...
+<input type="submit" name="action[delete]" value="delete" />
+<input type="submit" name="action[update]" value="update" />
+...
 
-In the tests/fixtures directory, you must provide a fixtures.sql file that will be loaded
-in the test database. You can dump the current dev db as a fixture file with the rake task
-db:prepare ( this also load the fixture files in the test database ).
-
-Then, each .yml file in this directory is loaded in this database. It must map some database
-rows. You can specify which table to truncate in a yaml list. An example file is provided.
-
-
-
--------
-scripts
--------
-
-"console" provide a php shell that can access typolight classes.
-"dbconsole" launch a mysql shell connected to a db specified in config.yml
-
-Each one can be passed an argument, the environment from where to run ( dev
-or test )
-
-The rakefile provide several tasks. To list them, launch :
-rake --tasks
+Default action is index(). Any other action redirect to index after
+processing if html format is requested ( default ), or die in a json
+response if json format is requested.
 
 
 ----------------
@@ -101,9 +72,6 @@ Third party libs
 ----------------
 
 The framework module include a copy of :
-- phpspec, by Pádraic Brady and Travis Swicegood
-- spyc, by Chris Wanstrath and Vlad Andersen 
-- sfConsolePlugin, by Geoffrey Bachelet
 - addLiveEvent, by Yannick Croissant
 
 
