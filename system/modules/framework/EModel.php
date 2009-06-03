@@ -147,7 +147,7 @@ abstract class EModel extends Model
 
     if ( method_exists( $this, $setter ) )
     {
-      return $this->$setter( $value );
+      $this->arrCache[ $key ] = $this->$setter( $value );
     }
 
     else
