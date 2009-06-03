@@ -19,10 +19,11 @@
  * Software Foundation website at http://www.gnu.org/licenses/.
  *
  * PHP version 5
- * @copyright  Olivier El Mekki, 2009 
- * @author     Olivier El Mekki 
- * @package    Framework 
- * @license    LGPL 
+ * @license    LGPL
+ * @copyright  Leo Feyer 2005
+ * @author     Leo Feyer <leo@typolight.org>
+ * @package    Frontend
+ * @license    LGPL
  * @filesource
  */
 
@@ -34,4 +35,3 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['routes']  = array(
   'inputType'               => 'routesWizard',
 );
 
-?>

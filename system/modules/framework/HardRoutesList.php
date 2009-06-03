@@ -58,4 +58,3 @@ class HardRoutesList extends BackendModule
   }
 }
 
-?>

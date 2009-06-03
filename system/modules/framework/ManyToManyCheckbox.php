@@ -249,4 +249,3 @@ class ManyToManyCheckBox extends Widget
   }
 }
 
-?>

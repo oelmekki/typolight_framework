@@ -198,4 +198,3 @@ class ParamWizard extends Widget
 	}
 }
 
-?>

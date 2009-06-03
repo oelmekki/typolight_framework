@@ -167,4 +167,3 @@ class Json extends System
   }
 }
 
-?>

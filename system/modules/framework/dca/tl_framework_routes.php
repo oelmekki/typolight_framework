@@ -156,8 +156,7 @@ $GLOBALS['TL_DCA']['tl_framework_routes'] = array
 			'exclude'                 => true,
 			'inputType'               => 'checkbox',
 			'eval'                    => array()
-		)
+		),
 	)
 );
 
-?>

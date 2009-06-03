@@ -68,4 +68,3 @@ class ModuleRoutedNav extends RoutedModule
     $this->Template->routes = $routes;
   }
 }
-?>

@@ -69,4 +69,3 @@ $GLOBALS[ 'TL_HOOKS' ][ 'replaceInsertTags' ][] = array( 'Route', 'insertTags' )
  *    ),
  *  );
  */
-?>
