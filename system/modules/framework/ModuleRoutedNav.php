@@ -45,6 +45,8 @@ class ModuleRoutedNav extends RoutedModule
    */
   public function index()
   {
+    global $objPage;
+
     $routes = array();
     $routesData = unserialize( $this->routes );
 
@@ -62,7 +64,17 @@ class ModuleRoutedNav extends RoutedModule
         }
       }
 
-      $routes[] = array( $routeData[ 'routeName' ], $params, $routeData[ 'altName' ] );
+      $path = Route::compose( $routeData[ 'routeName' ], $params );
+      if ( strlen( $path ) )
+      {
+        $pageId   = Route::resolveUrl( $path );
+        $page     = new FwPage( $pageId );
+        $active   = ( $pageId == $objPage->id );
+        if ( $page->accessible )
+        {
+          $routes[] = array( 'path' => $path, 'name' => $routeData[ 'altName' ], 'active' => $active );
+        }
+      }
     }
 
     $this->Template->routes = $routes;

@@ -223,6 +223,45 @@ class Route extends EModel
 
 
   /**
+   * Resolve a url to a route
+   * 
+   * @arg string        the url to resolve
+   * @return integer    the page id
+   */
+  public static function resolveUrl( $url )
+  {
+    // isolate the relative path
+    $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
+        Route::reg_escape( $_SERVER[ 'SERVER_NAME' ] ), 
+        Route::reg_escape( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] ),
+        Route::reg_escape( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ] )
+    );
+    $matches = array();
+    if ( preg_match( $regex, $url, $matches ) )
+    {
+      $url = $matches[2];
+    }
+
+
+    $arrFragments = explode( '/', $url );
+    $route = new Route();
+    $routes = $route->getAll( "sorting" ) ;
+    $routes = array_merge( $routes, $route->routesFromConf );
+
+    foreach ( $routes as $route )
+    {
+      if ( $fragments = $route->match( $arrFragments ) )
+      {
+        return $route->pageId;
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /**
    * HOOK for replaceInsertTags :
    * resolve route
    * Insert tag should be formatted as : {{Route:name:param1=value1:param2=value2}}
@@ -377,5 +416,30 @@ class Route extends EModel
 
     return 0;
   }
+
+
+
+  /**
+   * escape special regex characters
+   * @param string    the string to escape
+   * @return string   the string escaped
+   */
+  public static function reg_escape( $string )
+  {
+    $string = str_replace( '.', '\.', $string );
+    $string = str_replace( '*', '\*', $string );
+    $string = str_replace( '+', '\+', $string );
+    $string = str_replace( '(', '\(', $string );
+    $string = str_replace( ')', '\)', $string );
+    $string = str_replace( '[', '\[', $string );
+    $string = str_replace( ']', '\]', $string );
+    $string = str_replace( '?', '\?', $string );
+    $string = str_replace( '^', '\^', $string );
+    $string = str_replace( '$', '\$', $string );
+    $string = str_replace( '/', '\/', $string );
+
+    return $string;
+  }
+
 }
 

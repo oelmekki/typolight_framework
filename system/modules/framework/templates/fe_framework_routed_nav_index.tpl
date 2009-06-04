@@ -1,5 +1,5 @@
 <!-- indexer::stop -->
-<div class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<div class="mod_routedNav <?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
 <?php if ($this->headline): ?>
 
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
@@ -7,13 +7,13 @@
 
 <a href="<?php echo $this->request; ?>#<?php echo $this->skipId; ?>" class="invisible" title="<?php echo $this->skipNavigation; ?>"></a>
 
-<?php foreach ( $this->routes as $route ) : ?>
-
 <ul>
-<li><a href="<?php echo Route::compose( $route[0], $route[1] ) ?>" onclick="this.blur();<?php echo $item['target']; ?>"><?php echo $route[2]; ?></a><?php echo $item['subitems']; ?></li>
+  <?php foreach ( $this->routes as $route ) : ?>
+  <li <?php if ( $route[ 'active' ] ) echo 'class="active"' ?>>
+    <a href="<?php echo $route[ 'path' ] ?>" onclick="this.blur();"><?php echo $route[ 'name' ]; ?></a>
+  </li>
+  <?php endforeach ?>
 </ul>
-
-<?php endforeach ?>
 
 <a id="<?php echo $this->skipId; ?>" class="invisible" title="<?php echo $this->skipNavigation; ?>"></a>
 
