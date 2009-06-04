@@ -21,7 +21,7 @@
  * PHP version 5
  * @copyright  Olivier El Mekki, 2009 
  * @author     Olivier El Mekki 
- * @package    Framework
+ * @package    Language
  * @license    LGPL 
  * @filesource
  */
@@ -40,4 +40,19 @@ $GLOBALS['TL_LANG']['MSC']['framework'] = array(
   'delete'      => 'Effacer',
 );
 
-?>
+
+$GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
+  'noRoute'       => 'Pas de routes pour l\instant',
+  'inDatabase'    => 'présente dans la base de donnée',
+  'none'          => 'Aucun',
+  'definition'    => 'Définition',
+  'resolveTo'     => 'Dirige vers',
+  'staticParams'  => 'Paramètres statiques',
+  'isPostRoute'   => 'Route à accéder en POST?',
+  'true'          => 'Oui',
+  'false'         => 'Non',
+  'loadInDb'      => 'charger dans la base de donnée',
+  'loadAll'       => 'Charger toutes les routes dans la base de donnée',
+  'toggle-show'   => 'Voir',
+  'toggle-hide'   => 'Cacher',
+);

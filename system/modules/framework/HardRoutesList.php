@@ -35,7 +35,7 @@
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Controller
  */
-class HardRoutesList extends BackendModule
+class HardRoutesList extends EventBackendModule
 {
   /**
    * Template
@@ -49,11 +49,59 @@ class HardRoutesList extends BackendModule
    * Generate the widget and return it as string
    * @return string
    */
-  public function compile()
+  protected function index()
   {
-    if ( count( $GLOBALS[ 'TL_ROUTES' ] ) )
+    $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/Toggable.js';
+    $GLOBALS[ 'TL_CSS' ][] = 'system/modules/framework/css/Toggable.css';
+    $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/backend/HardRoutesList.js';
+    $GLOBALS[ 'TL_CSS' ][] = 'system/modules/framework/css/backend/HardRoutesList.css';
+    $route = new Route();
+    $routes = $route->routesFromConf;
+    $this->Template->routes = $routes;
+  }
+
+
+
+  /**
+   * Load a route in database
+   */
+  protected function get_load_route()
+  {
+    $this->sendJson = true;
+    $result = false;
+
+    $routeIndex = $this->Input->get( 'routeIndex' );
+    $route = new Route();
+    $routes = $route->routesFromConf;
+    $route = $routes[ $routeIndex ];
+
+    if ( $route and ! $route->inDatabase )
     {
-      $this->Template->routes = $GLOBALS[ 'TL_ROUTES' ];
+      $route->resolveTo = $route->pageId;
+      $result = $route->save();
+    }
+
+    if ( $this->isJson )
+    {
+      $this->Json->result = $result;
+    }
+  }
+
+
+
+  /**
+   * Load all routes in database
+   */
+  protected function post_load_all_routes()
+  {
+    $route = new Route();
+    foreach ( $route->routesFromConf as $route )
+    {
+      if ( ! $route->inDatabase )
+      {
+        $route->resolveTo = $route->pageId;
+        $route->save();
+      }
     }
   }
 }

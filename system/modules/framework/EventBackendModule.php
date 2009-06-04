@@ -202,7 +202,6 @@ class EventBackendModule extends BackendModule
       }
 
     }
-
   }
 
 

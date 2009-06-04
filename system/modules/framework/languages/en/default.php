@@ -21,7 +21,7 @@
  * PHP version 5
  * @copyright  Olivier El Mekki, 2009 
  * @author     Olivier El Mekki 
- * @package    Framework
+ * @package    Language
  * @license    LGPL 
  * @filesource
  */
@@ -33,10 +33,26 @@
 $GLOBALS['TL_LANG']['MSC']['framework'] = array(
   'routeName'   => 'Route name',
   'routeParams' => 'Route parameters',
+  'altName'     => 'alternative "clean" name',
   'copy'        => 'Copy',
   'up'          => 'Up',
   'down'        => 'Down',
   'delete'      => 'Delete',
 );
 
-?>
+
+$GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
+  'noRoute'       => 'Pas de routes pour l\instant',
+  'inDatabase'    => 'exists in database',
+  'none'          => 'None',
+  'definition'    => 'Definition',
+  'resolveTo'     => 'Resolve to',
+  'staticParams'  => 'Static params',
+  'isPostRoute'   => 'Route to be reached through POST?',
+  'true'          => 'Yes',
+  'false'         => 'No',
+  'loadInDb'      => 'load in database',
+  'loadAll'       => 'Load all routes in database',
+  'toggle-show'   => 'Show',
+  'toggle-hide'   => 'Hide',
+);

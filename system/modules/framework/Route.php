@@ -207,7 +207,7 @@ class Route extends EModel
   public function resolve( $arrFragments )
   {
     $routes = $this->findAll( "sorting" ) ;
-    $routes = array_merge( $routes, $this->routesFromConf() );
+    $routes = array_merge( $routes, $this->routesFromConf );
 
     foreach ( $routes as $route )
     {
@@ -255,10 +255,50 @@ class Route extends EModel
 
 
   /**
+   * Let findBy search in the conf file as well
+   * @return mixed
+   */
+  public function findBy( $strRefField, $varRefId )
+  {
+    if ( parent::findBy( $strRefField, $varRefId ) )
+    {
+      return true;
+    }
+
+    $confRoutes = $this->routesFromConf;
+    foreach ( $confRoutes as $route )
+    {
+      if ( $route->$strRefField == $varRefId )
+      {
+        $this->setData( $route->getData() );
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /**
+   * Let findAll search in the conf file as well
+   * @return mixed
+   */
+  public function findAll( $order = 'id' )
+  {
+    $allDb = parent::findAll( $order );
+
+    $confRoutes = $this->routesFromConf;
+    return array_merge( $allDb, $confRoutes );
+  }
+
+
+
+  /**
    * Get routes from the routes config file
    * @return mixed
    */
-  protected function routesFromConf()
+  public function getRoutesFromConf()
   {
     $routes = array();
 
@@ -288,24 +328,18 @@ class Route extends EModel
 
 
   /**
-   * Let findBy search in the conf file as well
-   * @return mixed
+   * Return true if a route with the same name exists in the database
+   * @return boolean
    */
-  public function findBy( $strRefField, $varRefId )
+  public function getInDatabase()
   {
-    if ( parent::findBy( $strRefField, $varRefId ) )
-    {
-      return true;
-    }
+    $record = $this->Database->prepare( 'select * from tl_framework_routes where name = ?' )
+                             ->execute( $this->name );
 
-    $confRoutes = $this->routesFromConf();
-    foreach ( $confRoutes as $route )
+    if ( $record->next() )
     {
-      if ( $route->$strRefField == $varRefId )
-      {
-        $this->setData( $route->getData() );
-        return true;
-      }
+      $this->found = $record->row();
+      return true;
     }
 
     return false;
@@ -314,15 +348,34 @@ class Route extends EModel
 
 
   /**
-   * Let findAll search in the conf file as well
-   * @return mixed
+   * Return the unserialized static params
    */
-  public function findAll( $order = 'id' )
+  public function getParams()
   {
-    $allDb = parent::findAll( $order );
+    return unserialize( $this->staticParams );
+  }
 
-    $confRoutes = $this->routesFromConf();
-    return array_merge( $allDb, $confRoutes );
+
+
+  /**
+   * get the resolveTo page id if it is an alias
+   */
+  public function getPageId()
+  {
+    if ( is_numeric( $this->resolveTo ) )
+    {
+      return $this->resolveTo;
+    }
+
+    $record = $this->Database->prepare( 'select id from tl_page where alias = ?' )
+                             ->execute( $this->resolveTo );
+
+    if ( $record->next() )
+    {
+      return $record->id;
+    }
+
+    return 0;
   }
 }
 
