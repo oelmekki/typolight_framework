@@ -136,7 +136,7 @@ class ManyToManyCheckBox extends Widget
     $arrOptions = array();
 
     $that = new $modelThatClass();
-    $thats = $that->findAll();
+    $thats = $that->all;
     $ref = ( strlen( $this->foreignRef ) ? $this->foreignRef : 'name' );
     foreach ( $thats as $that )
     {

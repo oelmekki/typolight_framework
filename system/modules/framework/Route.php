@@ -206,7 +206,7 @@ class Route extends EModel
    */
   public function resolve( $arrFragments )
   {
-    $routes = $this->findAll( "sorting" ) ;
+    $routes = $this->getAll( "sorting" ) ;
     $routes = array_merge( $routes, $this->routesFromConf );
 
     foreach ( $routes as $route )
@@ -281,12 +281,12 @@ class Route extends EModel
 
 
   /**
-   * Let findAll search in the conf file as well
+   * Let getAll search in the conf file as well
    * @return mixed
    */
-  public function findAll( $order = 'id' )
+  public function getAll( $order = 'id' )
   {
-    $allDb = parent::findAll( $order );
+    $allDb = parent::getAll( $order );
 
     $confRoutes = $this->routesFromConf;
     return array_merge( $allDb, $confRoutes );

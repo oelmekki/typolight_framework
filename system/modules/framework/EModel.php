@@ -288,7 +288,7 @@ abstract class EModel extends Model
    * @param string
    * @return array
    */
-  public function findAll( $order = "id" )
+  public function getAll( $order = "id" )
   {
     $record = $this->Database->prepare( "select * from " . $this->strTable . " order by " . $order )
                              ->execute();
@@ -315,7 +315,7 @@ abstract class EModel extends Model
    */
   public function ids( $collection = null )
   {
-    $all = ( is_array( $collection ) ? $collection : $this->findAll() );
+    $all = ( is_array( $collection ) ? $collection : $this->all );
     $ids = array();
 
     foreach ( $all as $one )
@@ -426,14 +426,20 @@ abstract class EModel extends Model
    */
   protected function owner( $class )
   {
-    $owner = new $class();
+    if ( $this->arrCache[ 'associations' ][ $class ] )
+    {
+      return $this->arrCache[ 'associations' ][ $class ];
+    }
+
     $owner_field = strtolower( $class ) . '_id';
     if ( ! $this->hasField( $owner_field ) )
     {
       $owner_field = 'pid';
     }
 
-    return new $class( $this->$owner_field );
+    $owner = new $class( $this->$owner_field );
+    $this->arrCache[ 'associations' ][ $class ] = $owner;
+    return $owner;
   }
 
 
@@ -444,9 +450,15 @@ abstract class EModel extends Model
    */
   protected function child( $class )
   {
+    if ( $this->arrCache[ 'associations' ][ $class ] )
+    {
+      return $this->arrCache[ 'associations' ][ $class ];
+    }
+
     $child = new $class();
     $find = "find_first_by_" . strtolower( get_class( $this ) ) . "_id";
     $child->$find( $this->id );
+    $this->arrCache[ 'associations' ][ $class ] = $child;
     return $child;
   }
 
@@ -458,6 +470,11 @@ abstract class EModel extends Model
    */
   protected function children( $class )
   {
+    if ( $this->arrCache[ 'associations' ][ $class ] )
+    {
+      return $this->arrCache[ 'associations' ][ $class ];
+    }
+
     $children = new $class();
     $children_field = strtolower( get_class( $this ) ) . "_id";
 
@@ -468,6 +485,7 @@ abstract class EModel extends Model
 
     $find = "find_all_by_" . $children_field;
     $children = $children->$find( $this->id );
+    $this->arrCache[ 'associations' ][ $class ] = $children;
     return $children;
   }
 
@@ -477,11 +495,18 @@ abstract class EModel extends Model
    * Find a related through an other
    * @return mixed
    */
-  public function oneThrough( $search )
+  public function oneThrough( $class )
   {
-    $through = $this->hasOneThrough[ $search ];
+    if ( $this->arrCache[ 'associations' ][ $class ] )
+    {
+      return $this->arrCache[ 'associations' ][ $class ];
+    }
+
+    $through = $this->hasOneThrough[ $class ];
     $step    = $this->$through();
-    return $step->$search();
+    $one     = $step->$class();
+    $this->arrCache[ 'associations' ][ $class ] = $one;
+    return $one;
   }
 
 
@@ -491,23 +516,29 @@ abstract class EModel extends Model
    * @return mixed
    * TODO : check the got many flag ( no need to query db any longer if it is false )
    */
-  public function manyToMany( $search )
+  public function manyToMany( $class )
   {
+    if ( $this->arrCache[ 'associations' ][ $class ] )
+    {
+      return $this->arrCache[ 'associations' ][ $class ];
+    }
+
     $relateds = array();
 
-    $table = $this->manyToMany[ $search ];
+    $table = $this->manyToMany[ $class ];
     $record = $this->Database->prepare( sprintf( "select * from %s where %s = ?", $table, get_class( $this ) ) )
                              ->execute( $this->id );
 
     while ( $record->next() )
     {
-      $related = new $search();
-      if ( $related->findBy( 'id', $record->$search ) )
+      $related = new $class();
+      if ( $related->findBy( 'id', $record->$class ) )
       {
         $relateds[] = $related;
       }
     }
 
+    $this->arrCache[ 'associations' ][ $class ] = $relateds;
     return $relateds;
   }
 
@@ -740,5 +771,16 @@ abstract class EModel extends Model
 
     return $json;
   }
+
+
+
+  /**
+   * Flush the cash
+   */
+  public function flushCache()
+  {
+    $this->arrCache = array();
+  }
+
 }
 

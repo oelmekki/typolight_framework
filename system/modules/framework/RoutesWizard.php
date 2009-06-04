@@ -168,7 +168,7 @@ class RoutesWizard extends Widget
     $template->buttons = array('copy', 'up', 'down', 'delete');
 
     $route = new Route();
-    $template->allRoutes = $route->findAll();
+    $template->allRoutes = $route->all;
 
     return $template->parse();
   }
