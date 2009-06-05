@@ -103,7 +103,7 @@ $GLOBALS['TL_DCA']['tl_framework_routes'] = array
 	'palettes' => array
 	(
                 '__selector__'                => array('addStatic'),
-		'default'                     => 'name;route,POSTroute;resolveTo,addStatic;'
+		'default'                     => 'name;route,method;resolveTo,addStatic;'
 	),
 
         // Subpalettes
@@ -150,12 +150,12 @@ $GLOBALS['TL_DCA']['tl_framework_routes'] = array
 			'inputType'               => 'paramWizard',
                         'options'                  => array()
 		),
-		'POSTroute' => array
+		'method' => array
 		(
-			'label'                   => &$GLOBALS['TL_LANG']['tl_framework_routes']['POSTroute'],
+			'label'                   => &$GLOBALS['TL_LANG']['tl_framework_routes']['method'],
 			'exclude'                 => true,
-			'inputType'               => 'checkbox',
-			'eval'                    => array()
+			'inputType'               => 'select',
+			'options'                 => array( 'GET', 'POST', 'GET/POST'),
 		),
 	)
 );

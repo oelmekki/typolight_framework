@@ -73,7 +73,7 @@ class Route extends EModel
     }
 
     /* no need to process any longer if the method don't match */
-    if ( ( strlen( $this->POSTroute ) and ! count( $_POST ) ) or ( ! strlen( $this->POSTroute ) and count( $_POST ) ) )
+    if ( ( $this->method == 'POST' and ! count( $_POST ) ) or ( $this->method == 'GET' and count( $_POST ) ) )
     {
       return false ;
     }
@@ -230,7 +230,6 @@ class Route extends EModel
    */
   public static function resolveUrl( $url )
   {
-    xdebug_break();
     // isolate the relative path
     $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
         preg_quote( $_SERVER[ 'SERVER_NAME' ], '/' ), 
@@ -350,7 +349,7 @@ class Route extends EModel
         $route->name = $name;
         $route->route = $routeDef[ 'route' ];
         $route->resolveTo = $routeDef[ 'resolveTo' ];
-        $route->POSTroute = $routeDef[ 'POSTroute' ];
+        $route->method = $routeDef[ 'method' ];
 
         if ( $routeDef[ 'staticParams' ] )
         {

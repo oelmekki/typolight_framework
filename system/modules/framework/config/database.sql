@@ -23,7 +23,7 @@ CREATE TABLE `tl_framework_routes` (
   `route` varchar(255) NOT NULL default '',
   `addStatic` char(1) NOT NULL default '',
   `staticParams` blob NULL,
-  `POSTroute` char(1) NOT NULL default '',
+  `method` varchar(255) NOT NULL default 'GET/POST',
   `resolveTo` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `pid` (`pid`)

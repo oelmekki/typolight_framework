@@ -35,7 +35,7 @@ $GLOBALS['TL_LANG']['tl_framework_routes']['route'] = array('Route definition', 
 $GLOBALS['TL_LANG']['tl_framework_routes']['resolveTo'] = array('Destination page', 'On which page should the route lead?');
 $GLOBALS['TL_LANG']['tl_framework_routes']['addStatic'] = array('Add some static GET params', "You can add some params that will be passed as GET params to the destination page.");
 $GLOBALS['TL_LANG']['tl_framework_routes']['staticParams'] = array('Params', 'Give the param names and values.');
-$GLOBALS['TL_LANG']['tl_framework_routes']['POSTroute'] = array('POST route', 'If you check this, this route will be recognized if and only if there is at least one POST param in the request. This let you route the same url on several pages.');
+$GLOBALS['TL_LANG']['tl_framework_routes']['method'] = array('Method', 'Choose if the route must be accessed by GET, POST or could be reached by both.');
 
 
 /**

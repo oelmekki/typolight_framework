@@ -23,7 +23,7 @@
             <?php endif ?>
           </div><!-- staticParams -->
 
-          <div class="postRoute"><?php echo $this->lang[ 'isPostRoute' ] ?> : <?php echo ( $route->POSTroute ? $this->lang[ 'true' ] : $this->lang[ 'false' ] ) ?></div>
+          <div class="method"><?php echo $this->lang[ 'method' ] ?> : <?php echo $route->method ?></div>
 
           <?php if ( ! $route->inDatabase ) : ?>
           <p class="load"><a href="<?php echo $this->pagename ?>&action=load_route&routeIndex=<?php echo $index ?>" class="load-link"><?php echo $this->lang[ 'loadInDb' ] ?></a></p>

@@ -35,7 +35,7 @@ $GLOBALS['TL_LANG']['tl_framework_routes']['route'] = array('Définition de la r
 $GLOBALS['TL_LANG']['tl_framework_routes']['resolveTo'] = array('Page de destination', 'Indiquez ici la page vers laquelle la route résolue pointe.');
 $GLOBALS['TL_LANG']['tl_framework_routes']['addStatic'] = array('Ajouter des paramètres GET statiques', "Vous pouvez ajouter des paramètres qui seront passés en GET à la page de destination systématique quand cette route sera résolue.");
 $GLOBALS['TL_LANG']['tl_framework_routes']['staticParams'] = array('Paramètres', 'Entrez le nom du paramètre et sa valeur pour chaque paramètre que vous voulez ajouter.');
-$GLOBALS['TL_LANG']['tl_framework_routes']['POSTroute'] = array('Route en POST', 'Si vous cochez cette case, cette route ne sera valable que s\'il existe au moins un paramètre POST. Cela vous permet de router la même url vers différentes pages.');
+$GLOBALS['TL_LANG']['tl_framework_routes']['method'] = array('Méthode', 'Choisissez si cette route ne peut être atteinte que par GET, POST ou si on peut y accéder par les deux.');
 
 
 /**
