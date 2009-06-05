@@ -38,4 +38,5 @@ CREATE TABLE `tl_framework_routes` (
 
 CREATE TABLE `tl_module` (
   `routes` blob NULL,
+  `defaultRoutedAction` varchar(255) NOT NULL default 'index',
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

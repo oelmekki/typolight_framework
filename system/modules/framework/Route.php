@@ -232,9 +232,9 @@ class Route extends EModel
   {
     // isolate the relative path
     $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
-        Route::reg_escape( $_SERVER[ 'SERVER_NAME' ] ), 
-        Route::reg_escape( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] ),
-        Route::reg_escape( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ] )
+        preg_quote( $_SERVER[ 'SERVER_NAME' ] ), 
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] ),
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ] )
     );
     $matches = array();
     if ( preg_match( $regex, $url, $matches ) )
@@ -416,30 +416,5 @@ class Route extends EModel
 
     return 0;
   }
-
-
-
-  /**
-   * escape special regex characters
-   * @param string    the string to escape
-   * @return string   the string escaped
-   */
-  public static function reg_escape( $string )
-  {
-    $string = str_replace( '.', '\.', $string );
-    $string = str_replace( '*', '\*', $string );
-    $string = str_replace( '+', '\+', $string );
-    $string = str_replace( '(', '\(', $string );
-    $string = str_replace( ')', '\)', $string );
-    $string = str_replace( '[', '\[', $string );
-    $string = str_replace( ']', '\]', $string );
-    $string = str_replace( '?', '\?', $string );
-    $string = str_replace( '^', '\^', $string );
-    $string = str_replace( '$', '\$', $string );
-    $string = str_replace( '/', '\/', $string );
-
-    return $string;
-  }
-
 }
 

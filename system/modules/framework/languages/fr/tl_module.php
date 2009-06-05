@@ -30,4 +30,5 @@
  * Fields
  */
 $GLOBALS['TL_LANG']['tl_module']['routes'] = array( 'Routes', 'Choisissez les routes à utiliser dans cette navigation. Vous pouvez spécifier les paramètres sous la forme : param1:value1;param2:value2.' ); 
-?>
+
+$GLOBALS['TL_LANG']['tl_module']['defaultRoutedAction'] = array( 'Action par défault', 'Choisissez l\'action par défault pour ce module.' ); 

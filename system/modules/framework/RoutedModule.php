@@ -46,6 +46,7 @@ abstract class RoutedModule extends Module
   protected $lang;
   protected $arrCache = array();
   protected $uncachable = array();
+  protected $arrActions = array();
 
   public function __construct( Database_Result $objModule, $strColumn = 'main' )
   {
@@ -155,7 +156,7 @@ abstract class RoutedModule extends Module
     }
     else
     {
-      $this->action = 'index';
+      $this->action = $this->defaultRoutedAction;
     }
 
     return $this->compile();
@@ -332,6 +333,15 @@ abstract class RoutedModule extends Module
     return sprintf( 'http://%s%s/%s', $_SERVER[ 'SERVER_NAME' ], $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], $this->pagename() );
   }
 
+
+
+  /**
+   * Get the list of executable actions
+   */
+  public function getActions()
+  {
+    return $this->arrActions;
+  }
 }
 
 

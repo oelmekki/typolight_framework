@@ -27,11 +27,50 @@
  * @filesource
  */
 
-$GLOBALS['TL_DCA']['tl_module']['palettes']['routedNav'] = 'name,type,headline;routes;align,space,cssID';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['routedNav'] = 'name,type,headline;routes;align,space,cssID;';
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['routes']  = array(
   'label'                   => &$GLOBALS['TL_LANG']['tl_module']['routes'],
   'exclude'                 => true,
   'inputType'               => 'routesWizard',
 );
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['defaultRoutedAction']  = array(
+  'label'                   => &$GLOBALS['TL_LANG']['tl_module']['defaultRoutedAction'],
+  'exclude'                 => true,
+  'inputType'               => 'select',
+  'options_callback'        => array( 'framework_tl_module', 'getActions' ),
+);
+
+class framework_tl_module extends Backend
+{
+  public function getActions( $dca )
+  {
+    $options = array( 'index' );
+
+    $record = $this->Database->prepare( 'select * from tl_module where id = ?' )
+                             ->execute( $dca->id );
+
+    if ( $record->next() )
+    {
+      $module = $record->row();
+      $type = $module[ 'type' ];
+
+      foreach ( $GLOBALS[ 'FE_MOD' ] as $package => $modules )
+      {
+        if ( strlen( $modules[ $type ] ) )
+        {
+          $class = $modules[ $type ];
+          $instance = new $class( $record );
+          $actions = $instance->actions;
+          $options = array_merge( $options, $actions );
+          break;
+        }
+      }
+    }
+
+
+    return $options;
+  }
+}
 
