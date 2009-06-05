@@ -230,11 +230,12 @@ class Route extends EModel
    */
   public static function resolveUrl( $url )
   {
+    xdebug_break();
     // isolate the relative path
     $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
-        preg_quote( $_SERVER[ 'SERVER_NAME' ] ), 
-        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] ),
-        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ] )
+        preg_quote( $_SERVER[ 'SERVER_NAME' ], '/' ), 
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], '/' ),
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ], '/' )
     );
     $matches = array();
     if ( preg_match( $regex, $url, $matches ) )
