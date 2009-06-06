@@ -5,8 +5,6 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
-<a href="<?php echo $this->request; ?>#<?php echo $this->skipId; ?>" class="invisible" title="<?php echo $this->skipNavigation; ?>"></a>
-
 <ul>
   <?php foreach ( $this->routes as $route ) : ?>
   <li <?php if ( $route[ 'active' ] ) echo 'class="active"' ?>>
@@ -14,8 +12,6 @@
   </li>
   <?php endforeach ?>
 </ul>
-
-<a id="<?php echo $this->skipId; ?>" class="invisible" title="<?php echo $this->skipNavigation; ?>"></a>
 
 </div>
 <!-- indexer::continue -->
