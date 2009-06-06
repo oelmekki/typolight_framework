@@ -206,6 +206,21 @@ class Route extends EModel
    */
   public function resolve( $arrFragments )
   {
+    $definition = implode( '/', $arrFragments );
+    $method = ( count( $_POST ) ? 'POST' : 'GET' );
+
+    if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+    {
+
+      $record = $this->Database->prepare( 'select * from tl_framework_cached_routes where route = ? and method = ? limit 1' )
+                               ->execute( $definition, $method );
+
+      if ( $record->next() )
+      {
+        return unserialize( $record->fragments );
+      }
+    }
+
     $routes = $this->getAll( "sorting" ) ;
     $routes = array_merge( $routes, $this->routesFromConf );
 
@@ -213,6 +228,12 @@ class Route extends EModel
     {
       if ( $fragments = $route->match( $arrFragments ) )
       {
+        if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+        {
+          $this->Database->prepare( 'insert into tl_framework_cached_routes( tstamp, route, method, fragments, pageId ) values( ?, ?, ?, ?, ? )' )
+                         ->execute( time(), $definition, $method, serialize( $fragments ), $route->pageId );
+        }
+
         return $fragments ;
       }
     }
@@ -236,14 +257,28 @@ class Route extends EModel
         preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], '/' ),
         preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ], '/' )
     );
+
     $matches = array();
     if ( preg_match( $regex, $url, $matches ) )
     {
       $url = $matches[2];
     }
 
-
     $arrFragments = explode( '/', $url );
+    $method = ( count( $_POST ) ? 'POST' : 'GET' );
+
+    if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+    {
+      $database = Database::getInstance();
+      $record = $database->prepare( 'select * from tl_framework_cached_routes where route = ? and method = ? limit 1' )
+                         ->execute( $url, $method );
+
+      if ( $record->next() )
+      {
+        return $record->pageId;
+      }
+    }
+
     $route = new Route();
     $routes = $route->getAll( "sorting" ) ;
     $routes = array_merge( $routes, $route->routesFromConf );
@@ -252,6 +287,12 @@ class Route extends EModel
     {
       if ( $fragments = $route->match( $arrFragments ) )
       {
+        if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+        {
+          $database->prepare( 'insert into tl_framework_cached_routes( tstamp, route, method, fragments, pageId ) values( ?, ?, ?, ?, ? )' )
+                   ->execute( time(), $url, $method, serialize( $fragments ), $route->pageId );
+        }
+
         return $route->pageId;
       }
     }
@@ -415,6 +456,18 @@ class Route extends EModel
     }
 
     return 0;
+  }
+
+
+
+  /**
+   * Purge the route cache of more than one week old records
+   */
+  public function purgeCache()
+  {
+    $oneWeekAgo = time() - 604800;
+    $this->Database->prepare( 'delete from tl_framework_cached_routes where tstamp < ?' )
+                   ->execute( $oneWeekAgo );
   }
 }
 

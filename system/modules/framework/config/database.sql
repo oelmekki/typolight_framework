@@ -33,6 +33,23 @@ CREATE TABLE `tl_framework_routes` (
 -- --------------------------------------------------------
 
 -- 
+-- Table `tl_framework_cached_routes`
+-- 
+
+CREATE TABLE `tl_framework_cached_routes` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `route` varchar(255) NOT NULL default '',
+  `method` varchar(255) NOT NULL default '',
+  `fragments` blob NULL,
+  `pageId` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+-- --------------------------------------------------------
+
+-- 
 -- Table `tl_module`
 -- 
 

@@ -26,7 +26,6 @@
  * @filesource
  */
 
-
 $GLOBALS[ 'BE_MOD' ][ 'framework' ][ 'routes' ] = array
 ( 
   'tables' => array( 'tl_framework_routes' )
@@ -44,6 +43,13 @@ $GLOBALS[ 'BE_FFL' ][ 'manyToManyCheckbox' ] = 'ManyToManyCheckbox' ;
 $GLOBALS[ 'TL_HOOKS' ][ 'getPageIdFromUrl' ][] = array( 'Route', 'resolve' );
 $GLOBALS[ 'TL_HOOKS' ][ 'replaceInsertTags' ][] = array( 'Route', 'insertTags' );
 
+
+/** 
+ * to cache routes, put in your localconfig.php : 
+ * $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] = true;
+ */
+$GLOBALS[ 'TL_CACHE' ][] = 'tl_framework_cached_routes';
+$GLOBALS[ 'TL_CRON' ][ 'weekly' ][] = array( 'Route', 'purgeCache' );
  
 /**
  * -------------------------------------------------------------------------
