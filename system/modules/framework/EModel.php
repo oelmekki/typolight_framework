@@ -58,22 +58,43 @@ abstract class EModel extends Model
 
 
   /**
+   * Arrays to manage validation
+   */
+  protected $validates_presence_of = array();
+  protected $validates_uniqueness_of = array();
+  protected $validates_format_of = array();
+  protected $validates_numericality_of = array();
+  protected $validates_min_length_of = array();
+  protected $validates_max_length_of = array();
+  protected $validates_associated = array();
+
+
+  /**
    * Array to list attributes that can be send through json.
    * Empty by default for security reasons.
    */
   protected $jsonable = array();
 
 
-  /* language array */
+  /**
+   *  language array 
+   */
   protected $lang;
 
 
-  /* errors */
+  /**
+   *  errors 
+   */
   protected $arrErrors = array();
 
 
+  /**
+   *  cache 
+   */
   protected $arrCache = array();
   protected $uncachable = array();
+
+
 
   /**
    * Let this be public, instead
@@ -193,7 +214,77 @@ abstract class EModel extends Model
    */
   public function validate()
   {
-    return true;
+    foreach ( $this->validates_presence_of as $attr )
+    {
+      if ( ! strlen( $this->$attr ) )
+      {
+        $this->setError( $this->lang[ $attr . '_required' ], $attr );
+      }
+    }
+
+
+    foreach ( $this->validates_uniqueness_of as $attr )
+    {
+      $class = get_class( $this );
+      $model = new $class();
+      $finder = 'find_all_by_' . $attr;
+      $others = $model->$finder( $this->$attr );
+      foreach ( $others as $other )
+      {
+        if ( $other->id != $this->id )
+        {
+          $this->setError( $this->lang[ $attr . '_uniqueness' ], $attr );
+          break;
+        }
+      }
+    }
+
+
+    foreach ( $this->validates_format_of as $attr => $format )
+    {
+      if ( ! preg_match( $format, $this->$attr ) )
+      {
+        $this->setError( $this->lang[ $attr . '_format' ], $attr );
+      }
+    }
+
+
+    foreach ( $this->validates_numericality_of as $attr )
+    {
+      if ( ! is_numeric( $this->$attr ) )
+      {
+        $this->setError( $this->lang[ $attr . '_numericality' ], $attr );
+      }
+    }
+
+
+    foreach ( $this->validates_min_length_of as $attr => $min_length )
+    {
+      if ( strlen( $this->$attr ) < $min_length )
+      {
+        $this->setError( $this->lang[ $attr . '_min_length' ], $attr );
+      }
+    }
+
+
+    foreach ( $this->validates_max_length_of as $attr => $max_length )
+    {
+      if ( strlen( $this->$attr ) < $max_length )
+      {
+        $this->setError( $this->lang[ $attr . '_max_length' ], $attr );
+      }
+    }
+
+
+    foreach ( $this->validates_associated as $attr )
+    {
+      if ( ! $this->$attr() )
+      {
+        $this->setError( $this->lang[ $attr . '_associated' ], $attr );
+      }
+    }
+
+    return ! $this->hasErrors();
   }
 
 
