@@ -191,6 +191,8 @@ abstract class RoutedModule extends Module
     $this->$action();
     $this->Template->flash = $this->lastFlash;
     $this->Template->lang = $this->lang;
+    $this->Template->pagename = $this->pagename;
+    $this->Template->absolute_pagename = $this->absolutePagename;
 
     if ( $this->isJson and $this->sendJson )
     {
@@ -318,7 +320,7 @@ abstract class RoutedModule extends Module
    * Convenient method to find out the name of the current page ( without parameters )
    * @return string
    */
-  protected function pagename()
+  protected function getPagename()
   {
     return preg_replace( '/\?.*/', '', ampersand($this->Environment->request, ENCODE_AMPERSANDS) ) ;
   }
@@ -328,7 +330,7 @@ abstract class RoutedModule extends Module
   /** Convenient method to find out the absolute url of the current page ( without parameters )
    * @return string
    */
-  protected function absolute_pagename()
+  protected function getAbsolutePagename()
   {
     return sprintf( 'http://%s%s/%s', $_SERVER[ 'SERVER_NAME' ], $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], $this->pagename() );
   }
