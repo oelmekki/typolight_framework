@@ -83,7 +83,7 @@ abstract class RoutedModule extends Module
 
     if ( method_exists( $this, $getter ) )
     {
-      if ( in_array( $key, $this->arrCache ) and ! in_array( $key, $this->uncachable ) )
+      if ( array_key_exists( $key, $this->arrCache ) and ! in_array( $key, $this->uncachable ) )
       {
         return $this->arrCache[ $key ];
       }
@@ -191,6 +191,7 @@ abstract class RoutedModule extends Module
     $this->$action();
     $this->Template->flash = $this->lastFlash;
     $this->Template->lang = $this->lang;
+
     $this->Template->pagename = $this->pagename;
     $this->Template->absolute_pagename = $this->absolutePagename;
 

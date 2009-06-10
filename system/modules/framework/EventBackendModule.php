@@ -76,7 +76,7 @@ class EventBackendModule extends BackendModule
 
     if ( method_exists( $this, $getter ) )
     {
-      if ( in_array( $key, $this->arrCache ) and ! in_array( $key, $this->uncachable ) )
+      if ( array_key_exists( $key, $this->arrCache ) and ! in_array( $key, $this->uncachable ) )
       {
         return $this->arrCache[ $key ];
       }
