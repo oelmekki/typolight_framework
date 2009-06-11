@@ -387,17 +387,20 @@ class Route extends EModel
       foreach ( $GLOBALS[ 'TL_ROUTES' ] as $name => $routeDef )
       {
         $route = new Route();
-        $route->name = $name;
-        $route->route = $routeDef[ 'route' ];
-        $route->resolveTo = $routeDef[ 'resolveTo' ];
-        $route->method = $routeDef[ 'method' ];
+        $data = array( 
+          'name'        => $name,  
+          'route'       => $routeDef[ 'route' ],
+          'resolveTo'   => $routeDef[ 'resolveTo' ],
+          'method'      => $routeDef[ 'method' ],
+        );
 
         if ( $routeDef[ 'staticParams' ] )
         {
-          $route->addStatic = true;
-          $route->staticParams = serialize( $routeDef[ 'staticParams' ] );
+          $data[ 'addStatic' ] = true;
+          $data[ 'staticParams' ] = serialize( $routeDef[ 'staticParams' ] );
         }
 
+        $route->data = $data;
         $routes[] = $route;
       }
     }

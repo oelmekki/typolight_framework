@@ -103,6 +103,7 @@ abstract class EModel extends Model
    */
   public function __construct( $id = false )
   {
+    $this->uncachable[] = 'data';
     parent::__construct();
 
     $language = ( $objPage and strlen( $objPage->language ) ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ];
@@ -128,6 +129,11 @@ abstract class EModel extends Model
    */
   public function __get( $key )
   {
+    if ( array_key_exists( $key, $this->arrData ) )
+    {
+      return $this->arrData[ $key ];
+    }
+
     $firstLetter = substr( $key, 0, 1 );
     $rest = substr( $key, 1 );
     $getter = 'get' . strtoupper( $firstLetter ) . $rest;
@@ -162,6 +168,12 @@ abstract class EModel extends Model
    */
   public function __set( $key, $value )
   {
+    if ( array_key_exists( $key, $this->arrData ) )
+    {
+      $this->arrData[ $key ] = $key;
+      return;
+    }
+
     $firstLetter = substr( $key, 0, 1 );
     $rest = substr( $key, 1 );
     $setter = 'set' . strtoupper( $firstLetter ) . $rest;

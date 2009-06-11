@@ -36,10 +36,9 @@
  */
 abstract class RoutedModule extends Module
 {
+  protected $templateClass;
   protected $controller;
   protected $action;
-  protected $lastFlash = array();
-  protected $nextFlash = array();
   protected $strTemplate;
   protected $isJson;
   protected $sendJson = false;
@@ -48,11 +47,12 @@ abstract class RoutedModule extends Module
   protected $uncachable = array();
   protected $arrActions = array();
 
-  public function __construct( Database_Result $objModule, $strColumn = 'main' )
+  public function __construct( Database_Result $objModule, $strColumn = 'main', $templateClass = 'FrontendTemplate' )
   {
+    $this->uncachable[] = 'template';
     parent::__construct( $objModule, $strColumn );
+    $this->templateClass = $templateClass;
     $chunks = explode( '?', $this->Environment->request );
-    $this->lastFlash = $_SESSION[ 'flash' ];
     $this->lang = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
 
     $this->isJson = ( substr( $chunks[0], -5 ) == '.json' );
@@ -60,11 +60,6 @@ abstract class RoutedModule extends Module
     {
       $this->import( 'Json' );
     }
-  }
-
-  public function __destruct()
-  {
-    $_SESSION[ 'flash' ] = $this->nextFlash ;
   }
 
 
@@ -171,25 +166,14 @@ abstract class RoutedModule extends Module
   public function compile()
   {
     $action = $this->action;
+    $templateClass = $this->templateClass;
+
     $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/addLiveEvent.js';
 
-    $layout = 'fe_' . $this->controller . '_layout';
-    try
-    {
-      $this->getTemplate( $layout );
-      $layout = new FrontendTemplate( $layout );
-      $layout->flash = $this->lastFlash;
-      $layout->lang = $this->lang;
-    }
-    catch ( Exception $e )
-    {
-      $layout = false;
-    }
 
-    $this->Template = new FrontendTemplate( 'fe_' . $this->controller . '_' . $action );
+    $this->Template = new $templateClass( 'fe_' . $this->controller . '_' . $action );
 
     $this->$action();
-    $this->Template->flash = $this->lastFlash;
     $this->Template->lang = $this->lang;
 
     $this->Template->pagename = $this->pagename;
@@ -201,30 +185,7 @@ abstract class RoutedModule extends Module
       die();
     }
 
-    if ( $layout )
-    {
-      $layout->content = $this->Template->parse();
-      $layout->flash = $this->lastFlash;
-      $layout->lang = $this->lang;
-      return $layout->parse();
-    }
-
-    else
-    {
-      return $this->Template->parse();
-    }
-  }
-
-
-
-  /**
-   * Set a message for the next action
-   * @param mixed
-   * @param mixed
-   */
-  protected function flash( $key, $message )
-  {
-    $this->nextFlash[ $key ] = $message;
+    return $this->Template->parse();
   }
 
 
@@ -344,6 +305,17 @@ abstract class RoutedModule extends Module
   public function getActions()
   {
     return $this->arrActions;
+  }
+
+
+
+  /**
+   * Return the template
+   * ( mainly useful for functional testing internals )
+   */
+  public function getView()
+  {
+    return $this->Template;
   }
 }
 
