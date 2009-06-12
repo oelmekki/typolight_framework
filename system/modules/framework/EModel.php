@@ -170,7 +170,7 @@ abstract class EModel extends Model
   {
     if ( array_key_exists( $key, $this->arrData ) )
     {
-      $this->arrData[ $key ] = $key;
+      $this->arrData[ $key ] = $value;
       return;
     }
 
