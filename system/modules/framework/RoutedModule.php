@@ -246,6 +246,22 @@ abstract class RoutedModule extends Module
 
 
   /**
+   * Override redirection not to kill the testing suite
+   */
+  protected function redirect( $strLocation, $intStatus = 303 )
+  {
+    if ( $GLOBALS[ 'TEST_ENV' ] and class_exists( 'RedirectionException' ) )
+    {
+      throw new RedirectionException( $strLocation, $intStatus, 'redirected' );
+    }
+
+    else
+    {
+      parent::redirect( $strLocation, $intStatus );
+    }
+  }
+
+  /**
    * Retrieve a route from its name and redirect to it
    * @param string
    * @param integer
