@@ -169,6 +169,7 @@ abstract class RoutedModule extends Module
     $templateClass = $this->templateClass;
 
     $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/addLiveEvent.js';
+    $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/Preloader.js';
 
 
     $this->Template = new $templateClass( 'fe_' . $this->controller . '_' . $action );
