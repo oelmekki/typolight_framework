@@ -79,7 +79,7 @@ abstract class EModel extends Model
   /**
    *  language array 
    */
-  protected $lang;
+  public $lang;
 
 
   /**
