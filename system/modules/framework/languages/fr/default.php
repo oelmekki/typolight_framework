@@ -30,6 +30,8 @@
 /**
  * Miscellaneous
  */
+$GLOBALS['TL_LANG']['MSC']['addNewFile'] = 'Ajouter un nouveau fichier';
+
 $GLOBALS['TL_LANG']['MSC']['framework'] = array(
   'routeName'   => 'Nom de la route',
   'routeParams' => 'Paramètres de la route',
