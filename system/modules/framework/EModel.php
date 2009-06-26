@@ -202,12 +202,50 @@ abstract class EModel extends Model
   /**
    * Save the timestamp
    */
-  public function save()
+  public function save( $blnForceInsert = null )
   {
     $this->tstamp = time();
     if ( $this->validate() )
     {
-      return parent::save();
+      if ($this->blnRecordExists && !$blnForceInsert)
+      {
+        $rows = $this->Database->prepare("UPDATE " . $this->strTable . " %s WHERE " . $this->strRefField . "=?")
+                               ->set($this->arrData)
+                               ->execute($this->varRefId)
+                               ->affectedRows;
+
+        if ( $rows > 0 )
+        {
+          return $rows;
+        }
+
+        else
+        {
+          return false;
+        }
+      }
+      else
+      {
+        $id = $this->Database->prepare("INSERT INTO " . $this->strTable . " %s")
+                             ->set($this->arrData)
+                             ->execute()
+                             ->insertId;
+
+        if ( is_numeric( $id ) )
+        {
+          $this->blnRecordExists = true;
+          $this->strRefField = 'id';
+          $this->varRefId = $id;
+          $this->id = $id;
+        }
+
+        else
+        {
+          return false;
+        }
+      }
+
+      return $this->id;
     }
 
     else
@@ -886,5 +924,40 @@ abstract class EModel extends Model
     $this->arrCache = array();
   }
 
+
+
+  /**
+   * Resize an image by width
+   * @param int     width
+   * @param string  the path of the file to resize
+   * return string  path to the renderer
+   */
+  public function resizeImageByWidth( $width, $path = null )
+  {
+    if ( ! $path )
+    {
+      $path = $this->imageSRC;
+    }
+
+    return $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=width&file=' . urlencode( $path ) . '&value=' . $width;
+  }
+
+
+
+  /**
+   * Resize an image by height
+   * @param int     height
+   * @param string  the path of the file to resize
+   * return string  path to the renderer
+   */
+  public function resizeImageByHeight( $height, $path = null )
+  {
+    if ( ! $path )
+    {
+      $path = $this->imageSRC;
+    }
+
+    return $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
+  }
 }
 

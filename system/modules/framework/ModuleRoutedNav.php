@@ -70,11 +70,16 @@ class ModuleRoutedNav extends RoutedModule
         $pageId   = Route::resolveUrl( $path );
         $page     = new FwPage( $pageId );
         $active   = ( $pageId == $objPage->id );
-        if ( $page->accessible )
+        if ( $pageId and $page->accessible )
         {
           $routes[] = array( 'path' => $path, 'name' => $routeData[ 'altName' ], 'active' => $active );
         }
       }
+    }
+
+    if ( strlen( $this->cssID ) )
+    {
+      $this->Template->cssID = 'id="' . $this->cssID[0] . '"';
     }
 
     $this->Template->routes = $routes;

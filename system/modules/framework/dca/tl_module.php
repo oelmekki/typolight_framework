@@ -40,14 +40,13 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['defaultRoutedAction']  = array(
   'exclude'                 => true,
   'inputType'               => 'select',
   'options_callback'        => array( 'framework_tl_module', 'getActions' ),
+  'eval'                    => array( 'submitOnChange' => true ),
 );
 
 class framework_tl_module extends Backend
 {
   public function getActions( $dca )
   {
-    $options = array( 'index' );
-
     $record = $this->Database->prepare( 'select * from tl_module where id = ?' )
                              ->execute( $dca->id );
 
@@ -62,8 +61,7 @@ class framework_tl_module extends Backend
         {
           $class = $modules[ $type ];
           $instance = new $class( $record );
-          $actions = $instance->actions;
-          $options = array_merge( $options, $actions );
+          $options = $instance->actions;
           break;
         }
       }

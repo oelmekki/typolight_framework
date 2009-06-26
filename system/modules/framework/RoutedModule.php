@@ -321,7 +321,22 @@ abstract class RoutedModule extends Module
    */
   public function getActions()
   {
-    return $this->arrActions;
+    $actions = array( 'index' => (strlen( $this->lang[ 'index' ] ) ? $this->lang[ 'index' ] : 'index' ) );
+
+    foreach ( $this->arrActions as $action )
+    {
+      if ( strlen( $this->lang[ $action ] ) )
+      {
+        $actions[ $action ] = $this->lang[ $action ];
+      }
+
+      else
+      {
+        $actions[ $action ] = $action;
+      }
+    }
+
+    return $actions;
   }
 
 
@@ -333,6 +348,32 @@ abstract class RoutedModule extends Module
   public function getView()
   {
     return $this->Template;
+  }
+
+
+
+  /**
+   * Resize an image by width
+   * @param int     width
+   * @param string  the path of the file to resize
+   * return string  path to the renderer
+   */
+  public function resizeImageByWidth( $width, $path )
+  {
+    return $GLOBALS[ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=width&file=' . urlencode( $path ) . '&value=' . $width;
+  }
+
+
+
+  /**
+   * Resize an image by height
+   * @param int     height
+   * @param string  the path of the file to resize
+   * return string  path to the renderer
+   */
+  public function resizeImageByHeight( $height, $path )
+  {
+    return $GLOBALS[ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
   }
 }
 
