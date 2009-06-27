@@ -130,9 +130,6 @@ class ImageRenderer extends System
     }
 
 
-    /* prepare the png */
-    imageantialias( $dest_img, true );
-
     /* resize */
     imagecopyresampled( $dest_img, $orig_img, 0, 0, 0, 0, $resized[0], $resized[1], $this->original_size[0], $this->original_size[1] );
 
