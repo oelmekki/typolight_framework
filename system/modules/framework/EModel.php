@@ -273,10 +273,11 @@ abstract class EModel extends Model
     }
 
 
+    $class = get_class( $this );
+    $carbon = new $class();
     foreach ( $this->validates_uniqueness_of as $attr )
     {
-      $class = get_class( $this );
-      $model = new $class();
+      $model = clone $carbon;
       $finder = 'find_all_by_' . $attr;
       $others = $model->$finder( $this->$attr );
       foreach ( $others as $other )
@@ -437,10 +438,11 @@ abstract class EModel extends Model
 
     $all = array();
 
+    $classname = get_class( $this );
+    $carbon = new $classname();
     while ( $record->next() )
     {
-      $classname = get_class( $this );
-      $one = new $classname();
+      $one = clone $carbon;
       $one->setFound( $record->row() );
       $all[] = $one;
     }
@@ -671,9 +673,11 @@ abstract class EModel extends Model
     $record = $this->Database->prepare( sprintf( "select * from %s where %s = ?", $table, get_class( $this ) ) )
                              ->execute( $this->id );
 
+
+    $carbon = new $class();
     while ( $record->next() )
     {
-      $related = new $class();
+      $related = clone $carbon;
       if ( $related->findBy( 'id', $record->$class ) )
       {
         $relateds[] = $related;
@@ -817,10 +821,11 @@ abstract class EModel extends Model
     {
       $all = array() ;
 
+      $classname = get_class( $this ) ;
+      $carbon = new $classname();
       while ( $record->next() )
       {
-        $classname = get_class( $this ) ;
-        $one = new $classname() ;
+        $one = clone $carbon;
         $one->setFound( $record->row() );
         $all[] = $one;
       }

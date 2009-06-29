@@ -384,9 +384,10 @@ class Route extends EModel
 
     if ( is_array( $GLOBALS[ 'TL_ROUTES' ] ) )
     {
+      $carbon = new Route();
       foreach ( $GLOBALS[ 'TL_ROUTES' ] as $name => $routeDef )
       {
-        $route = new Route();
+        $route = clone $carbon;
         $data = array( 
           'name'        => $name,  
           'route'       => $routeDef[ 'route' ],
