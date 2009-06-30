@@ -273,11 +273,10 @@ abstract class EModel extends Model
     }
 
 
-    $class = get_class( $this );
-    $carbon = new $class();
     foreach ( $this->validates_uniqueness_of as $attr )
     {
-      $model = clone $carbon;
+      $class = get_class( $this );
+      $model = new $class();
       $finder = 'find_all_by_' . $attr;
       $others = $model->$finder( $this->$attr );
       foreach ( $others as $other )
@@ -438,11 +437,10 @@ abstract class EModel extends Model
 
     $all = array();
 
-    $classname = get_class( $this );
-    $carbon = new $classname();
     while ( $record->next() )
     {
-      $one = clone $carbon;
+      $classname = get_class( $this );
+      $one = new $classname();
       $one->setFound( $record->row() );
       $all[] = $one;
     }
@@ -475,9 +473,28 @@ abstract class EModel extends Model
   /**
    * set the current object to the first record
    */
-  public function first()
+  public function first( $order = 'id' )
   {
-    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' order by id limit 1' )
+    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' order by ' . $order . ' limit 1' )
+                             ->execute();
+
+    if ( $record->next() )
+    {
+      $this->setFound( $record->row() );
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+  /**
+   * set the current object to the last record
+   */
+  public function last( $order = 'id' )
+  {
+    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' order by ' . $order . ' desc limit 1' )
                              ->execute();
 
     if ( $record->next() )
@@ -673,11 +690,9 @@ abstract class EModel extends Model
     $record = $this->Database->prepare( sprintf( "select * from %s where %s = ?", $table, get_class( $this ) ) )
                              ->execute( $this->id );
 
-
-    $carbon = new $class();
     while ( $record->next() )
     {
-      $related = clone $carbon;
+      $related = new $class();
       if ( $related->findBy( 'id', $record->$class ) )
       {
         $relateds[] = $related;
@@ -821,11 +836,10 @@ abstract class EModel extends Model
     {
       $all = array() ;
 
-      $classname = get_class( $this ) ;
-      $carbon = new $classname();
       while ( $record->next() )
       {
-        $one = clone $carbon;
+        $classname = get_class( $this ) ;
+        $one = new $classname() ;
         $one->setFound( $record->row() );
         $all[] = $one;
       }
