@@ -28,7 +28,7 @@
 
 
 /**
- * Class ManyToManyCheckBox
+ * Class ManyToManyCheckbox
  * Provide methods to handle check boxes in the many to many relationship
  *
  * This widget can be used to handle the many to many relationship.
@@ -40,7 +40,7 @@
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Widget
  */
-class ManyToManyCheckBox extends Widget
+class ManyToManyCheckbox extends Widget
 {
 
   /**
@@ -162,11 +162,6 @@ class ManyToManyCheckBox extends Widget
 
     $arrOptions = array();
 
-    if (!$this->multiple && count($this->arrOptions) > 1)
-    {
-      $this->arrOptions = array($this->arrOptions[0]);
-    }
-
     $state = $this->Session->get('checkbox_groups');
 
     // Toggle checkbox group
@@ -221,12 +216,15 @@ class ManyToManyCheckBox extends Widget
       $blnCheckAll = false;
     }
 
-  return sprintf('<div id="ctrl_%s" class="%s%s">%s%s</div>',
-                                          $this->strId,
-                                          ($this->multiple ? 'tl_checkbox_container' : 'tl_checkbox_single_container'),
-                                          (strlen($this->strClass) ? ' ' . $this->strClass : ''),
-                                          (($this->multiple && $blnCheckAll) ? '<input type="checkbox" id="check_all_' . $this->strId . '" class="tl_checkbox" onclick="Backend.toggleCheckboxGroup(this, \'ctrl_' . $this->strId . '\')" /> <label for="check_all_' . $this->strId . '" style="color:#a6a6a6;"><em>' . $GLOBALS['TL_LANG']['MSC']['selectAll'] . '</em></label><br />' : ''),
-                                          str_replace('<br /></div><br />', '</div>', implode('<br />', $arrOptions)));
+    $template = new BackendTemplate( 'be_widget_m2m_items' );
+    $template->strId = $this->strId;
+    $template->strClasses = 'tl_checkbox_container' . 
+                            (strlen($this->strClass) ? ' ' . $this->strClass : '');
+
+    $template->checkAll = $blnCheckAll;
+    $template->options  = $arrOptions;
+
+    return $template->parse();
   }
 
 
@@ -238,14 +236,15 @@ class ManyToManyCheckBox extends Widget
    */
   protected function generateCheckbox($arrOption, $i)
   {
-    return sprintf('<input type="checkbox" name="%s" id="opt_%s" class="tl_checkbox" value="%s"%s%s onfocus="Backend.getScrollOffset();" /> <label for="opt_%s">%s</label>',
-                                    $this->strName . ($this->multiple ? '[]' : ''),
-                                    $this->strId.'_'.$i,
-                                    ($this->multiple ? specialchars($arrOption['value']) : 1),
-                                    ((is_array($this->varValue) && in_array($arrOption['value'] , $this->varValue) || $this->varValue == $arrOption['value']) ? ' checked="checked"' : ''),
-                                    $this->getAttributes(),
-                                    $this->strId.'_'.$i,
-                                    $arrOption['label']);
+    $template = new BackendTemplate( 'be_widget_m2m_item' );
+    $template->strName = $this->strName . '[]';
+    $template->strId   = $this->strId . '_' . $i;
+    $template->value   = specialchars($arrOption['value']);
+    $template->checked = ((is_array($this->varValue) && in_array($arrOption['value'] , $this->varValue) || $this->varValue == $arrOption['value']) ? ' checked="checked"' : '');
+    $template->attrs   = $this->getAttributes();
+    $template->label   = $arrOption[ 'label' ];
+
+    return $template->parse();
   }
 }
 
