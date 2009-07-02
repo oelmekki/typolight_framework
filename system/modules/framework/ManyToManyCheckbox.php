@@ -53,7 +53,7 @@ class ManyToManyCheckbox extends Widget
    * Template
    * @var string
    */
-  protected $strTemplate = 'be_widget_chk';
+  protected $strTemplate = 'be_widget_m2m';
 
   /**
    * Options
