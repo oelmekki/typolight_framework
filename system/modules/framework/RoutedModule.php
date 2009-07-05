@@ -183,6 +183,23 @@ abstract class RoutedModule extends Module
 
 
     $this->Template = new $templateClass( 'fe_' . $this->controller . '_' . $action );
+    if (strlen($this->arrData['space'][0]))
+    {
+      $this->arrStyle[] = 'margin-top:'.$this->arrData['space'][0].'px;';
+    }
+
+    if (strlen($this->arrData['space'][1]))
+    {
+      $this->arrStyle[] = 'margin-bottom:'.$this->arrData['space'][1].'px;';
+    }
+
+    $this->Template->style = count($this->arrStyle) ? implode(' ', $this->arrStyle) : '';
+    $this->Template->cssID = strlen($this->cssID[0]) ? ' id="' . $this->cssID[0] . '"' : '';
+    $this->Template->class = trim('mod_' . $this->type . ' ' . $this->cssID[1]);
+
+    $this->Template->headline = $this->headline;
+    $this->Template->hl = $this->hl;
+
 
     $this->$action();
     $this->Template->lang = $this->lang;

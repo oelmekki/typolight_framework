@@ -77,10 +77,6 @@ class ModuleRoutedNav extends RoutedModule
       }
     }
 
-    if ( strlen( $this->cssID ) )
-    {
-      $this->Template->cssID = 'id="' . $this->cssID[0] . '"';
-    }
 
     $this->Template->routes = $routes;
   }
