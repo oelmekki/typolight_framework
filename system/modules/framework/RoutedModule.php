@@ -41,7 +41,7 @@ abstract class RoutedModule extends Module
   protected $action;
   protected $strTemplate;
   protected $isJson;
-  protected $sendJson = false;
+  protected $sendJson = array();
   protected $lang;
   protected $arrCache = array();
   protected $uncachable = array();
@@ -164,6 +164,11 @@ abstract class RoutedModule extends Module
       $this->action = $action;
     }
 
+    if ( $this->isJson and ! in_array( $this->action, $this->sendJson ) )
+    {
+      return '';
+    }
+
     return $this->compile();
   }
 
@@ -207,7 +212,7 @@ abstract class RoutedModule extends Module
     $this->Template->pagename = $this->pagename;
     $this->Template->absolute_pagename = $this->absolutePagename;
 
-    if ( $this->isJson and $this->sendJson )
+    if ( $this->isJson )
     {
       echo $this->Json->encode();
       die();
