@@ -55,5 +55,6 @@ CREATE TABLE `tl_framework_cached_routes` (
 
 CREATE TABLE `tl_module` (
   `routes` blob NULL,
-  `defaultRoutedAction` varchar(255) NOT NULL default 'index',
+  `defaultRoutedAction` varchar(255) NOT NULL default '',
+  `forceRoutedAction` varchar(255) NOT NULL default '0',
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -43,6 +43,12 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['defaultRoutedAction']  = array(
   'eval'                    => array( 'submitOnChange' => true ),
 );
 
+$GLOBALS['TL_DCA']['tl_module']['fields']['forceRoutedAction']  = array(
+  'label'                   => &$GLOBALS['TL_LANG']['tl_module']['forceRoutedAction'],
+  'exclude'                 => true,
+  'inputType'               => 'checkbox',
+);
+
 class framework_tl_module extends Backend
 {
   public function getActions( $dca )

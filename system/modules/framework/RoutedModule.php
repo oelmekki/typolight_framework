@@ -49,12 +49,13 @@ abstract class RoutedModule extends Module
 
   public function __construct( Database_Result $objModule, $strColumn = 'main', $templateClass = 'FrontendTemplate' )
   {
-    $this->uncachable[] = 'template';
     parent::__construct( $objModule, $strColumn );
-    $this->templateClass = $templateClass;
-    $chunks = explode( '?', $this->Environment->request );
-    $this->lang = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
 
+    $this->uncachable[]   = 'template';
+    $this->templateClass  = $templateClass;
+    $this->lang           = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
+
+    $chunks       = explode( '?', $this->Environment->request );
     $this->isJson = ( substr( $chunks[0], -5 ) == '.json' );
     if ( $this->isJson )
     {
@@ -144,14 +145,23 @@ abstract class RoutedModule extends Module
       return $objTemplate->parse() ;
     }
 
+    $this->action = $this->defaultRoutedAction;
+    if ( strpos( $this->action, $this->controller . '_' ) === 0 )
+    {
+      $this->action = str_replace( $this->controller . '_', '', $this->action );
+    }
+
+
     $action = $this->Input->get( 'action' );
-    if ( strlen( $action ) and method_exists( $this, $action ) )
+    if ( strpos( $action, $this->controller . '_' ) === 0 )
+    {
+      $action = str_replace( $this->controller . '_', '', $action );
+    }
+
+
+    if ( ! $this->forceRoutedAction and strlen( $action ) and method_exists( $this, $action ) )
     {
       $this->action = $action;
-    }
-    else
-    {
-      $this->action = $this->defaultRoutedAction;
     }
 
     return $this->compile();
@@ -321,18 +331,20 @@ abstract class RoutedModule extends Module
    */
   public function getActions()
   {
-    $actions = array( 'index' => (strlen( $this->lang[ 'index' ] ) ? $this->lang[ 'index' ] : 'index' ) );
+    $index = $this->controller . '_index';
+    $actions = array( $index => (strlen( $this->lang[ $index ] ) ? $this->lang[ $index ] : $index ) );
 
     foreach ( $this->arrActions as $action )
     {
-      if ( strlen( $this->lang[ $action ] ) )
+      $fullname = $this->controller . '_' . $action;
+      if ( strlen( $this->lang[ $fullname ] ) )
       {
-        $actions[ $action ] = $this->lang[ $action ];
+        $actions[ $fullname ] = $this->lang[ $fullname ];
       }
 
       else
       {
-        $actions[ $action ] = $action;
+        $actions[ $fullname ] = $fullname;
       }
     }
 
