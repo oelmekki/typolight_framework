@@ -430,10 +430,28 @@ abstract class EModel extends Model
    * @param string
    * @return array
    */
-  public function getAll( $order = "id" )
+  public function getAll( $order = "id", $where = null, $limit = null )
   {
-    $record = $this->Database->prepare( "select * from " . $this->strTable . " order by " . $order )
-                             ->execute();
+    $where_clause = '';
+    $where_values = array();
+    if ( is_array( $where ) )
+    {
+      $where_clause = $where[0];
+      $where_values = array_slice( $where, 1 );
+
+      if ( strpos( $where_clause, 'where' ) !== 0 )
+      {
+        $where_clause = 'where ' . $where_clause;
+      }
+    }
+
+    if ( ! is_numeric( $limit ) )
+    {
+      $limit = null;
+    }
+
+    $record = $this->Database->prepare( "select * from " . $this->strTable . ' ' . $where_clause . " order by " . $order . ( $limit ? ' limit ' . $limit  : '' ) )
+                             ->execute( $where_values );
 
     $all = array();
 
@@ -473,10 +491,23 @@ abstract class EModel extends Model
   /**
    * set the current object to the first record
    */
-  public function first( $order = 'id' )
+  public function first( $order = 'id', $where = null )
   {
-    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' order by ' . $order . ' limit 1' )
-                             ->execute();
+    $where_clause = '';
+    $where_values = array();
+    if ( is_array( $where ) )
+    {
+      $where_clause = $where[0];
+      $where_values = array_slice( $where, 1 );
+
+      if ( strpos( $where_clause, 'where' ) !== 0 )
+      {
+        $where_clause = 'where ' . $where_clause;
+      }
+    }
+
+    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' ' . $where_clause . ' order by ' . $order . ' limit 1' )
+                             ->execute( $where_values );
 
     if ( $record->next() )
     {
@@ -492,10 +523,23 @@ abstract class EModel extends Model
   /**
    * set the current object to the last record
    */
-  public function last( $order = 'id' )
+  public function last( $order = 'id', $where = null )
   {
-    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' order by ' . $order . ' desc limit 1' )
-                             ->execute();
+    $where_clause = '';
+    $where_values = array();
+    if ( is_array( $where ) )
+    {
+      $where_clause = $where[0];
+      $where_values = array_slice( $where, 1 );
+
+      if ( strpos( $where_clause, 'where' ) !== 0 )
+      {
+        $where_clause = 'where ' . $where_clause;
+      }
+    }
+
+    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' ' . $where_clause . ' order by ' . $order . ' desc limit 1' )
+                             ->execute( $where_values );
 
     if ( $record->next() )
     {
