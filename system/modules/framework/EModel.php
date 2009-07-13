@@ -257,6 +257,21 @@ abstract class EModel extends Model
 
 
   /**
+   * Delete many to many associations and record
+   */
+  public function delete()
+  {
+    if ( count( $this->manyToMany ) )
+    {
+      $this->cleanupAssociation();
+    }
+
+    return parent::delete();
+  }
+
+
+
+  /**
    * Override this method to add some validation
    * You can add errors with setError() 
    *
@@ -607,7 +622,7 @@ abstract class EModel extends Model
 
     if ( in_array( $stmt, $this->hasMany ) )
     {
-      return $this->children( $stmt );
+      return $this->children( $stmt, $params );
     }
 
     if ( array_key_exists( $stmt, $this->hasOneThrough ) )
@@ -617,7 +632,7 @@ abstract class EModel extends Model
 
     if ( array_key_exists( $stmt, $this->manyToMany ) )
     {
-      return $this->manyToMany( $stmt );
+      return $this->manyToMany( $stmt, $params );
     }
 
     throw new Exception( 'undefined method:' . $stmt );
@@ -671,26 +686,41 @@ abstract class EModel extends Model
 
   /**
    * Find children - hasMany relationship
+   * @arg   string      the related class name
+   * @arg   mixed       the where clause array
    * @return mixed
    */
-  protected function children( $class )
+  protected function children( $class, $clauses )
   {
-    if ( $this->arrCache[ 'associations' ][ $class ] )
+    if ( $this->arrCache[ 'associations' ][ $class ] and ! count( $clauses ) )
     {
       return $this->arrCache[ 'associations' ][ $class ];
     }
 
-    $children = new $class();
+    $carbon = new $class();
     $children_field = strtolower( get_class( $this ) ) . "_id";
 
-    if ( ! $children->hasField( $children_field ) )
+    if ( ! $carbon->hasField( $children_field ) )
     {
       $children_field = 'pid';
     }
 
-    $find = "find_all_by_" . $children_field;
-    $children = $children->$find( $this->id );
-    $this->arrCache[ 'associations' ][ $class ] = $children;
+
+    $where_clause = array( $children_field . ' = ?', $this->id );
+    if ( count( $clauses ) )
+    {
+      $where_clause[0] .= ' and ' . $clauses[1][0];
+      unset( $clauses[1][0] );
+      $where_clause = array_merge( $where_clause, $clauses[1] );
+      $children = $carbon->getAll( $clauses[0], $where_clause, $clauses[2] );
+    }
+
+    else
+    {
+      $children = $carbon->getAll( 'id', $where_clause );
+      $this->arrCache[ 'associations' ][ $class ] = $children;
+    }
+
     return $children;
   }
 
@@ -721,9 +751,9 @@ abstract class EModel extends Model
    * @return mixed
    * TODO : check the got many flag ( no need to query db any longer if it is false )
    */
-  public function manyToMany( $class )
+  public function manyToMany( $class, $clauses )
   {
-    if ( $this->arrCache[ 'associations' ][ $class ] )
+    if ( $this->arrCache[ 'associations' ][ $class ] and ! count( $clauses ) )
     {
       return $this->arrCache[ 'associations' ][ $class ];
     }
@@ -734,16 +764,67 @@ abstract class EModel extends Model
     $record = $this->Database->prepare( sprintf( "select * from %s where %s = ?", $table, get_class( $this ) ) )
                              ->execute( $this->id );
 
+    $carbon = new $class();
+    $i = 0;
+
     while ( $record->next() )
     {
-      $related = new $class();
-      if ( $related->findBy( 'id', $record->$class ) )
+      $related = clone $carbon;
+      $where_clause = array( 'id = ?', $record->$class );
+
+      // order, where and/or limit clauses have been defined
+      if ( count( $clauses ) )
       {
-        $relateds[] = $related;
+        // check if there is a where clause
+        if ( count( $clauses[1] ) )
+        {
+          $tmp_clauses = $clauses;
+          $where_clause[0] .= ' and ' . $tmp_clauses[1][0];
+          unset( $tmp_clauses[1][0] );
+          $where_clause = array_merge( $where_clause, $tmp_clauses[1] );
+        }
+
+        $related->first( $clauses[0], $where_clause );
+
+        // check if limit is defined and reached
+        if ( is_numeric( $clauses[2] ) )
+        {
+          if ( $i == $clauses[2] )
+          {
+            break;
+          }
+
+          elseif ( is_numeric( $related->id ) )
+          {
+            $i++;
+            $relateds[] = $related;
+          }
+        }
+
+        // there is not limit, checks if record matches
+        elseif ( is_numeric( $related->id ) )
+        {
+          $relateds[] = $related;
+        }
       }
+
+      // simply get the related record
+      else
+      {
+        $related->first( 'id', $where_clause );
+        if ( is_numeric( $related->id ) )
+        {
+          $relateds[] = $related;
+        }
+      }
+
     }
 
-    $this->arrCache[ 'associations' ][ $class ] = $relateds;
+    if ( ! count( $clauses ) )
+    {
+      $this->arrCache[ 'associations' ][ $class ] = $relateds;
+    }
+
     return $relateds;
   }
 
@@ -1021,6 +1102,25 @@ abstract class EModel extends Model
     }
 
     return $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
+  }
+
+
+
+  public function cleanupAssociation( $dca = null )
+  {
+    if ( is_object( $dca ) )
+    {
+      $this->findBy( 'id', $dca->id );
+    }
+
+    if ( is_numeric( $this->id ) )
+    {
+      foreach ( $this->manyToMany as $class => $table )
+      {
+        $this->Database->prepare( 'delete from ' . $table . ' where ' . get_class( $this ) . ' = ?' )
+                       ->execute( $this->id );
+      }
+    }
   }
 }
 
