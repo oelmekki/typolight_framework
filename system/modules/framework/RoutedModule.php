@@ -146,6 +146,13 @@ abstract class RoutedModule extends Module
     }
 
     $this->action = $this->defaultRoutedAction;
+
+    if ( ! strlen( $this->action ) )
+    {
+      $this->action = 'index';
+    }
+
+
     if ( strpos( $this->action, $this->controller . '_' ) === 0 )
     {
       $this->action = str_replace( $this->controller . '_', '', $this->action );
