@@ -859,7 +859,7 @@ abstract class EModel extends Model
    * Add a related - manyToMany relationship
    * @param string
    * @param mixed
-   * @return mixed
+   * @return boolean
    * TODO : set the got many flag
    */
   public function addManyToMany( $associated, $id )
@@ -870,12 +870,16 @@ abstract class EModel extends Model
       $record = $this->Database->prepare( sprintf( "select * from %s where %s = ? and %s = ?", $table, get_class( $this ), $associated ) )
                                ->execute( $this->id, $id );
 
-      if ( ! $record->next() and is_int( $id ) )
+      if ( ! $record->next() and is_numeric( $id ) )
       {
         $this->Database->prepare( sprintf( "insert into %s( %s, %s ) values( ?, ? )", $table, get_class( $this ), $associated ) )
                        ->execute( $this->id, $id );
+
+        return true;
       }
     }
+
+    return false;
   }
 
 
