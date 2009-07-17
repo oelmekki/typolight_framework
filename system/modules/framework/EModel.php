@@ -209,7 +209,7 @@ abstract class EModel extends Model
     {
       if ($this->blnRecordExists && !$blnForceInsert)
       {
-        $rows = $this->Database->prepare("UPDATE " . $this->strTable . " %s WHERE " . $this->strRefField . "=?")
+        $rows = $this->Database->prepare("UPDATE `" . $this->strTable . "` %s WHERE `" . $this->strRefField . "` = ?")
                                ->set($this->arrData)
                                ->execute($this->varRefId)
                                ->affectedRows;
@@ -226,7 +226,7 @@ abstract class EModel extends Model
       }
       else
       {
-        $id = $this->Database->prepare("INSERT INTO " . $this->strTable . " %s")
+        $id = $this->Database->prepare("INSERT INTO `" . $this->strTable . "` %s")
                              ->set($this->arrData)
                              ->execute()
                              ->insertId;
@@ -465,7 +465,7 @@ abstract class EModel extends Model
       $limit = null;
     }
 
-    $record = $this->Database->prepare( "select * from " . $this->strTable . ' ' . $where_clause . " order by " . $order . ( $limit ? ' limit ' . $limit  : '' ) )
+    $record = $this->Database->prepare( "select * from `" . $this->strTable . '` ' . $where_clause . " order by " . $order . ( $limit ? ' limit ' . $limit  : '' ) )
                              ->execute( $where_values );
 
     $all = array();
@@ -521,7 +521,7 @@ abstract class EModel extends Model
       }
     }
 
-    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' ' . $where_clause . ' order by ' . $order . ' limit 1' )
+    $record = $this->Database->prepare( 'select * from `' . $this->strTable . '` ' . $where_clause . ' order by ' . $order . ' limit 1' )
                              ->execute( $where_values );
 
     if ( $record->next() )
@@ -553,7 +553,7 @@ abstract class EModel extends Model
       }
     }
 
-    $record = $this->Database->prepare( 'select * from ' . $this->strTable . ' ' . $where_clause . ' order by ' . $order . ' desc limit 1' )
+    $record = $this->Database->prepare( 'select * from `' . $this->strTable . '` ' . $where_clause . ' order by ' . $order . ' desc limit 1' )
                              ->execute( $where_values );
 
     if ( $record->next() )
@@ -761,7 +761,7 @@ abstract class EModel extends Model
     $relateds = array();
 
     $table = $this->manyToMany[ $class ];
-    $record = $this->Database->prepare( sprintf( "select * from %s where %s = ?", $table, get_class( $this ) ) )
+    $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ?", $table, get_class( $this ) ) )
                              ->execute( $this->id );
 
     $carbon = new $class();
@@ -842,12 +842,12 @@ abstract class EModel extends Model
     if ( array_key_exists( $associated, $this->manyToMany ) )
     {
       $table = $this->manyToMany[ $associated ];
-      $this->Database->prepare( sprintf( "delete from %s where %s = ?", $table, get_class( $this ) ) )
+      $this->Database->prepare( sprintf( "delete from `%s` where `%s` = ?", $table, get_class( $this ) ) )
                      ->execute( $this->id );
 
       foreach ( $ids as $id )
       {
-        $this->Database->prepare( sprintf( "insert into %s( %s, %s ) values( ?, ? )", $table, get_class( $this ), $associated ) )
+        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, get_class( $this ), $associated ) )
                        ->execute( $this->id, (int) $id );
       }
     }
@@ -867,12 +867,41 @@ abstract class EModel extends Model
     if ( array_key_exists( $associated, $this->manyToMany ) )
     {
       $table = $this->manyToMany[ $associated ];
-      $record = $this->Database->prepare( sprintf( "select * from %s where %s = ? and %s = ?", $table, get_class( $this ), $associated ) )
+      $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ? and `%s` = ?", $table, get_class( $this ), $associated ) )
                                ->execute( $this->id, $id );
 
       if ( ! $record->next() and is_numeric( $id ) )
       {
-        $this->Database->prepare( sprintf( "insert into %s( %s, %s ) values( ?, ? )", $table, get_class( $this ), $associated ) )
+        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, get_class( $this ), $associated ) )
+                       ->execute( $this->id, $id );
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /**
+   * Remove a related - manyToMany relationship
+   * @param string
+   * @param mixed
+   * @return boolean
+   * TODO : set the got many flag
+   */
+  public function removeManyToMany( $associated, $id )
+  {
+    if ( array_key_exists( $associated, $this->manyToMany ) )
+    {
+      $table = $this->manyToMany[ $associated ];
+      $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ? and `%s` = ?", $table, get_class( $this ), $associated ) )
+                               ->execute( $this->id, $id );
+
+      if ( $record->next() and is_numeric( $id ) )
+      {
+        $this->Database->prepare( sprintf( "delete from `%s` where  `%s` = ? and `%s` = ?", $table, get_class( $this ), $associated ) )
                        ->execute( $this->id, $id );
 
         return true;
@@ -921,20 +950,20 @@ abstract class EModel extends Model
 
     /* build the query */
 
-    $query  = sprintf( "select * from %s where ", $this->strTable ) ;
+    $query  = sprintf( "select * from `%s` where ", $this->strTable ) ;
 
     foreach( $fields as $i => $field )
     {
       if ( $i == 0 ) // no delimiter for now
       {
-        $query .= sprintf( "%s = ? ", $field ) ;
+        $query .= sprintf( "`%s` = ? ", $field ) ;
       }
 
       else
       {
         $delim = $delims[$i-1][0] ;
         $delim = str_replace( '_', ' ', $delim ) ;
-        $query .= sprintf( "%s %s = ? ", $delim, $field ) ;
+        $query .= sprintf( "%s `%s` = ? ", $delim, $field ) ;
       }
     }
 
@@ -1121,7 +1150,7 @@ abstract class EModel extends Model
     {
       foreach ( $this->manyToMany as $class => $table )
       {
-        $this->Database->prepare( 'delete from ' . $table . ' where ' . get_class( $this ) . ' = ?' )
+        $this->Database->prepare( 'delete from `' . $table . '` where `' . get_class( $this ) . '` = ?' )
                        ->execute( $this->id );
       }
     }
