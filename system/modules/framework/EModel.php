@@ -709,9 +709,13 @@ abstract class EModel extends Model
     $where_clause = array( $children_field . ' = ?', $this->id );
     if ( count( $clauses ) )
     {
-      $where_clause[0] .= ' and ' . $clauses[1][0];
-      unset( $clauses[1][0] );
-      $where_clause = array_merge( $where_clause, $clauses[1] );
+      if ( is_array( $clauses[1] ) and count( $clauses[1] ) )
+      {
+        $where_clause[0] .= ' and ' . $clauses[1][0];
+        unset( $clauses[1][0] );
+        $where_clause = array_merge( $where_clause, $clauses[1] );
+      }
+
       $children = $carbon->getAll( $clauses[0], $where_clause, $clauses[2] );
     }
 
@@ -776,7 +780,7 @@ abstract class EModel extends Model
       if ( count( $clauses ) )
       {
         // check if there is a where clause
-        if ( count( $clauses[1] ) )
+        if ( is_array( $clauses[1] ) and count( $clauses[1] ) )
         {
           $tmp_clauses = $clauses;
           $where_clause[0] .= ' and ' . $tmp_clauses[1][0];
