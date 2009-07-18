@@ -43,6 +43,12 @@ $GLOBALS['TL_LANG']['MSC']['framework'] = array(
 );
 
 
+$GLOBALS['TL_LANG']['MSC']['framework_pagination'] = array(
+  'previous'  => 'Précédent',
+  'next'      => 'Suivant',
+);
+
+
 $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
   'noRoute'       => 'Pas de routes pour l\instant',
   'inDatabase'    => 'présente dans la base de donnée',

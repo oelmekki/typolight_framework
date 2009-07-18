@@ -416,6 +416,67 @@ abstract class RoutedModule extends Module
   {
     return $GLOBALS[ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
   }
+
+
+
+  /**
+   * Helper to do some pagination
+   *
+   * @param   mixed     collection of objects on which pagination will be done
+   * @param   integer   number of items per page
+   * @return  mixed     the extract of the collection
+   */
+  protected function paginate( $collection, $perPage )
+  {
+    $page = $this->Input->get( 'paginate' );
+    if ( ! ( strlen( $page ) and is_numeric( $page ) ) )
+    {
+      $page = 1;
+    }
+
+    if ( ! is_array( $collection ) )
+    {
+      return false;
+    }
+
+    $item_count = count( $collection );
+    $start      = ( $page - 1 ) * $perPage;
+
+    if ( $start > $item_count )
+    {
+      $start = 0;
+    }
+
+
+    $page_count = ceil( $item_count / $perPage );
+    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
+
+    $links = array();
+    for ( $i = 1; $i <= $page_count; $i++ )
+    {
+      if ( strpos( $pagename, '?' ) !== false )
+      {
+        $links[ $i ] = $pagename . '&paginate=' . $i;
+      }
+
+      else
+      {
+        $links[ $i ] = $pagename . '?paginate=' . $i;
+      }
+    }
+
+
+    $pagination = new FrontendTemplate( 'fe_framework_pagination' );
+    $pagination->links      = $links;
+    $pagination->page_count = $page_count;
+    $pagination->selected   = $page;
+    $pagination->lang       = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'framework_pagination' ];
+
+    $this->pagination = $pagination->parse();
+
+    $selected = array_slice( $collection, $start, $perPage );
+    return $selected;
+  }
 }
 
 
