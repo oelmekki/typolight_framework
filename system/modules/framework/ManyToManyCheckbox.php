@@ -94,6 +94,18 @@ class ManyToManyCheckbox extends Widget
         $this->arrConfiguration[ 'foreignRef' ] = $varValue;
         break;
 
+      case 'sorting':
+        $this->arrConfiguration[ 'sorting' ] = $varValue;
+        break;
+
+      case 'condition':
+        $this->arrConfiguration[ 'condition' ] = $varValue;
+        break;
+
+      case 'thatLabelFields':
+        $this->arrConfiguration[ 'thatLabelFields' ] = $varValue;
+        break;
+
       default:
         parent::__set($strKey, $varValue);
         break;
@@ -135,13 +147,36 @@ class ManyToManyCheckbox extends Widget
     $modelThatClass = $this->thatModel;
     $arrOptions = array();
 
-    $that = new $modelThatClass();
-    $thats = $that->all;
-    $ref = ( strlen( $this->foreignRef ) ? $this->foreignRef : 'name' );
-    foreach ( $thats as $that )
+    if ( ! $this->sorting )
     {
-      $arrOptions[] = array( 'value' => $that->id, 'label' => $that->$ref );
+      $this->sorting = 'id';
     }
+
+    $that = new $modelThatClass();
+    $thats = $that->getAll( $this->sorting, $this->condition );
+    $ref = ( strlen( $this->foreignRef ) ? $this->foreignRef : 'name' );
+    if ( count( $this->thatLabelFields ) )
+    {
+      foreach ( $thats as $that )
+      {
+        $label = "";
+        foreach ( $this->thatLabelFields as $field )
+        {
+          $label .= $that->$field . ' ';
+        }
+
+        $arrOptions[] = array( 'value' => $that->id, 'label' => $label );
+      }
+    }
+
+    else
+    {
+      foreach ( $thats as $that )
+      {
+        $arrOptions[] = array( 'value' => $that->id, 'label' => $that->$ref );
+      }
+    }
+
     $this->arrOptions = $arrOptions;
 
 
