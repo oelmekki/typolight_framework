@@ -426,7 +426,7 @@ abstract class RoutedModule extends Module
    * @param   integer   number of items per page
    * @return  mixed     the extract of the collection
    */
-  protected function paginate( $collection, $perPage )
+  protected function paginate( $collection, $perPage, $page_index = null )
   {
     $page = $this->Input->get( 'paginate' );
     if ( ! ( strlen( $page ) and is_numeric( $page ) ) )
@@ -440,16 +440,33 @@ abstract class RoutedModule extends Module
     }
 
     $item_count = count( $collection );
-    $start      = ( $page - 1 ) * $perPage;
+    $page_count = ceil( $item_count / $perPage );
+    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
 
+
+    // get manual index
+    if ( $page_index )
+    {
+      if ( $page_index == 'last' )
+      {
+        $page = $page_count;
+      }
+
+      elseif ( is_numeric( $page_index ) )
+      {
+        $page = $page_index;
+      }
+    }
+
+
+    // get first item
+    $start = ( $page - 1 ) * $perPage;
     if ( $start > $item_count )
     {
       $start = 0;
     }
 
 
-    $page_count = ceil( $item_count / $perPage );
-    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
 
     $links = array();
     for ( $i = 1; $i <= $page_count; $i++ )
