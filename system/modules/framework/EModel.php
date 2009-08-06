@@ -94,6 +94,10 @@ abstract class EModel extends Model
   protected $arrCache = array();
   protected $uncachable = array();
 
+  /**
+   * intern
+   */
+  protected $_order_clause;
 
 
   /**
@@ -824,12 +828,79 @@ abstract class EModel extends Model
 
     }
 
+
+    if ( strlen( $clauses[0] ) )
+    {
+      $chunks = explode( ' ', $clauses[0] );
+      $this->_order_clause = $chunks[0];
+
+      if ( $chunks[1] == 'desc' )
+      {
+        usort( $relateds, array( $this, 'manySortDesc' ) );
+      }
+
+      else
+      {
+        usort( $relateds, array( $this, 'manySortAsc' ) );
+      }
+    }
+
     if ( ! count( $clauses ) )
     {
       $this->arrCache[ 'associations' ][ $class ] = $relateds;
     }
 
     return $relateds;
+  }
+
+
+
+  /**
+   * Sort many to many results ascendingly
+   */
+  protected function manySortAsc( $first, $second )
+  {
+    $order = $this->_order_clause;
+
+    if ( is_numeric( $first->$order ) and is_numeric( $second->$order ) )
+    {
+      if ( $first->$order == $second->$order )
+      {
+        return 0;
+      }
+
+      return ( $first->$order < $second->$order ) ? -1 : 1;
+    }
+
+    else
+    {
+      return strnatcmp( $first->$order, $second->$order );
+    }
+  }
+
+
+
+  /**
+   * Sort many to many results descendingly
+   */
+  protected function manySortDesc( $first, $second )
+  {
+    $order = $this->_order_clause;
+
+    if ( is_numeric( $first->$order ) and is_numeric( $second->$order ) )
+    {
+      if ( $first->$order == $second->$order )
+      {
+        return 0;
+      }
+
+      return ( $second->$order < $first->$order ) ? -1 : 1;
+    }
+
+    else
+    {
+      return strnatcmp( $second->$order, $first->$order );
+    }
   }
 
 
