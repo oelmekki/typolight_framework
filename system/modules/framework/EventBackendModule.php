@@ -128,42 +128,6 @@ class EventBackendModule extends BackendModule
 
 
 
-  /**
-   * Check if the record exists
-   */
-  public function generate()
-  {
-    $method = ( count( $_POST ) > 0 ? 'post' : 'get' );
-    $post = $this->Input->post( 'action' );
-    if ( is_array( $post ) )
-    {
-      foreach ( $post as $name => $v )
-      {
-        if ( strlen( $v ) )
-        {
-          $postAction = $name;
-          break;
-        }
-      }
-    }
-
-    $action = sprintf( '%s_%s', $method, ( $postAction ? $postAction : $this->Input->get( 'action' ) ) );
-
-    if ( method_exists( $this, $action ) )
-    {
-      $this->action = $action;
-    }
-
-    else
-    {
-      $this->action = 'index';
-    }
-
-    return $this->compile();
-  }
-
-
-
 
   /**
    * Parse the template and the layout
@@ -172,16 +136,30 @@ class EventBackendModule extends BackendModule
   public function compile()
   {
     $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/addLiveEvent.js';
-    $action = $this->action;
 
-    if ( $action == 'index' )
+    $this->Template->lang = $this->lang;
+    $this->Template->pagename = $this->pagename;
+
+    $method = ( count( $_POST ) > 0 ? 'post' : 'get' );
+    $post = $this->Input->post( 'action' );
+    if ( is_array( $post ) )
     {
-      $this->Template = new BackendTemplate( $this->strTemplate );
-      $this->Template->lang = $this->lang;
-      $this->Template->pagename = $this->pagename;
+      foreach ( $post as $name => $v )
+      {
+        $postAction = $name;
+        break;
+      }
     }
 
-    $this->$action();
+    $action = sprintf( '%s_%s', $method, ( $postAction ? $postAction : $this->Input->get( 'action' ) ) );
+
+    if ( method_exists( $this, $action ) )
+    {
+      $this->$action();
+    }
+
+
+    $this->index();
 
     if ( $this->isJson and $this->sendJson )
     {
@@ -191,16 +169,25 @@ class EventBackendModule extends BackendModule
 
     else
     {
-      if ( $action == 'index' )
-      {
-        return $this->Template->parse();
-      }
+      return $this->Template->parse();
+    }
+  }
 
-      else
-      {
-        $this->redirect( $this->pagename );
-      }
 
+
+  /**
+   * Override redirection not to kill the testing suite
+   */
+  protected function redirect( $strLocation, $intStatus = 303 )
+  {
+    if ( $GLOBALS[ 'TEST_ENV' ] and class_exists( 'RedirectionException' ) )
+    {
+      throw new RedirectionException( $strLocation, $intStatus, 'redirected' );
+    }
+
+    else
+    {
+      parent::redirect( $strLocation, $intStatus );
     }
   }
 
@@ -215,6 +202,17 @@ class EventBackendModule extends BackendModule
     $matches = array();
     preg_match( '/.*?\?do=[^&]+/', ampersand( $this->Environment->request, ENCODE_AMPERSANDS ), $matches );
     return $matches[0];
+  }
+
+
+
+  /**
+   * Return the template
+   * ( mainly useful for functional testing internals )
+   */
+  public function getView()
+  {
+    return $this->Template;
   }
 }
 
