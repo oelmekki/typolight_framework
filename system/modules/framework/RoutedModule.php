@@ -422,29 +422,19 @@ abstract class RoutedModule extends Module
   /**
    * Helper to do some pagination
    *
-   * @param   mixed     collection of objects on which pagination will be done
+   * @param   mixed     collection of objects on which pagination will be done or object on which to use getALl()
    * @param   integer   number of items per page
    * @return  mixed     the extract of the collection
    */
-  protected function paginate( $collection, $perPage, $page_index = null )
+  protected function paginate( $collection, $perPage, $page_index = null, $order = null, $where = null )
   {
+    //find page to use
     $page = $this->Input->get( 'paginate' );
     if ( ! ( strlen( $page ) and is_numeric( $page ) ) )
     {
       $page = 1;
     }
 
-    if ( ! is_array( $collection ) )
-    {
-      return false;
-    }
-
-    $item_count = count( $collection );
-    $page_count = ceil( $item_count / $perPage );
-    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
-
-
-    // get manual index
     if ( $page_index )
     {
       if ( $page_index == 'last' )
@@ -459,14 +449,58 @@ abstract class RoutedModule extends Module
     }
 
 
-    // get first item
     $start = ( $page - 1 ) * $perPage;
-    if ( $start > $item_count )
+
+
+
+    if ( is_object( $collection ) )
     {
-      $start = 0;
+      $item_count = $collection->count;
+      if ( $start > $item_count )
+      {
+        $start = 0;
+      }
+
+      if ( ! $order )
+      {
+        $order = 'id';
+      }
+
+      $collection = $collection->getAll( $order, $where, $start . ', ' . $perPage );
+      $selected   = $collection;
     }
 
+    else
+    {
+      $item_count = count( $collection );
+      if ( $start > $item_count )
+      {
+        $start = 0;
+      }
 
+      $selected = array_slice( $collection, $start, $perPage );
+    }
+
+    $page_count = ceil( $item_count / $perPage );
+
+    $this->preparePagination( $page_count, $page );
+
+
+    return $selected;
+  }
+
+
+
+  /**
+   * Prepare template for pagination
+   * Extracted to let you use your own pagination function
+   *
+   * @arg integer       the total number of pages
+   * @arg integer       the current page number
+   */
+  protected function preparePagination( $page_count, $page )
+  {
+    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
 
     $links = array();
     for ( $i = 1; $i <= $page_count; $i++ )
@@ -490,9 +524,6 @@ abstract class RoutedModule extends Module
     $pagination->lang       = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'framework_pagination' ];
 
     $this->pagination = $pagination->parse();
-
-    $selected = array_slice( $collection, $start, $perPage );
-    return $selected;
   }
 }
 
