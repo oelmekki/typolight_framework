@@ -464,11 +464,6 @@ abstract class EModel extends Model
       }
     }
 
-    if ( ! is_numeric( $limit ) )
-    {
-      $limit = null;
-    }
-
     $record = $this->Database->prepare( "select * from `" . $this->strTable . '` ' . $where_clause . " order by " . $order . ( $limit ? ' limit ' . $limit  : '' ) )
                              ->execute( $where_values );
 
@@ -485,6 +480,31 @@ abstract class EModel extends Model
     return $all;
   }
 
+
+
+  /**
+   * Get the count of items
+   */
+  public function getCount( $where = null )
+  {
+    $where_clause = '';
+    $where_values = array();
+    if ( is_array( $where ) )
+    {
+      $where_clause = $where[0];
+      $where_values = array_slice( $where, 1 );
+
+      if ( strpos( $where_clause, 'where' ) !== 0 )
+      {
+        $where_clause = 'where ' . $where_clause;
+      }
+    }
+
+    $record = $this->Database->prepare( 'select count(*) from ' . $this->strTable . ' ' . $where_clause )->execute( $where_values );
+    $record->next();
+    $row    = $record->row();
+    return $row[ 'count(*)' ];
+  }
 
 
   /**
@@ -798,6 +818,22 @@ abstract class EModel extends Model
         if ( is_numeric( $clauses[2] ) )
         {
           if ( $i == $clauses[2] )
+          {
+            break;
+          }
+
+        }
+
+        elseif ( is_string( $clauses[2] ) )
+        {
+          $limits = explode( ',', $clauses[2] );
+          if ( $i < (int) $limits[0] )
+          {
+            $i++;
+            continue;
+          }
+
+          if ( $i == ((int) $limits[0]) + ((int) $limits[1]) )
           {
             break;
           }
