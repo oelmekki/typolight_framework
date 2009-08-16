@@ -822,6 +822,11 @@ abstract class EModel extends Model
             break;
           }
 
+          elseif ( is_numeric( $related->id ) )
+          {
+            $i++;
+            $relateds[] = $related;
+          }
         }
 
         elseif ( is_string( $clauses[2] ) )
