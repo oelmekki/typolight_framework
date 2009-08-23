@@ -95,9 +95,12 @@ class Route extends EModel
 
     /* add static params */
     $staticParams = unserialize( $this->staticParams );
-    foreach ( $staticParams as $staticParam => $value )
+    if ( is_array( $staticParams ) )
     {
-      $arrOrderedFragments = array_merge( $arrOrderedFragments, array( $staticParam, $value ) ) ;
+      foreach ( $staticParams as $staticParam => $value )
+      {
+        $arrOrderedFragments = array_merge( $arrOrderedFragments, array( $staticParam, $value ) ) ;
+      }
     }
 
 
@@ -364,7 +367,7 @@ class Route extends EModel
    * Let getAll search in the conf file as well
    * @return mixed
    */
-  public function getAll( $order = 'id' )
+  public function getAll( $order = 'id', $where = null, $limit = null )
   {
     $allDb = parent::getAll( $order );
 
