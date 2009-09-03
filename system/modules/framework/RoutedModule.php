@@ -467,6 +467,7 @@ abstract class RoutedModule extends Module
       }
 
       $collection = $collection->getAll( $order, $where, $start . ', ' . $perPage );
+      $item_count = count( $collection );
       $selected   = $collection;
     }
 
