@@ -230,6 +230,11 @@ abstract class EModel extends Model
       }
       else
       {
+        if ( $this->Database->fieldExists( 'created_at', $this->strTable ) )
+        {
+          $this->created_at = time();
+        }
+
         $id = $this->Database->prepare("INSERT INTO `" . $this->strTable . "` %s")
                              ->set($this->arrData)
                              ->execute()
