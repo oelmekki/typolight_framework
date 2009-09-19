@@ -1224,42 +1224,6 @@ abstract class EModel extends Model
 
 
 
-  /**
-   * Resize an image by width
-   * @param int     width
-   * @param string  the path of the file to resize
-   * return string  path to the renderer
-   */
-  public function resizeImageByWidth( $width, $path = null )
-  {
-    if ( ! $path )
-    {
-      $path = $this->imageSRC;
-    }
-
-    return $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=width&file=' . urlencode( $path ) . '&value=' . $width;
-  }
-
-
-
-  /**
-   * Resize an image by height
-   * @param int     height
-   * @param string  the path of the file to resize
-   * return string  path to the renderer
-   */
-  public function resizeImageByHeight( $height, $path = null )
-  {
-    if ( ! $path )
-    {
-      $path = $this->imageSRC;
-    }
-
-    return $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
-  }
-
-
-
   public function cleanupAssociation( $dca = null )
   {
     if ( is_object( $dca ) )

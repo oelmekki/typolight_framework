@@ -26,19 +26,15 @@
  */
 
 
-define( 'TL_MODE', 'FE' );
-require_once( dirname( dirname( dirname( __FILE__ ) ) ) . '/initialize.php' );
-
-
 /**
- * Class ImageRenderer
+ * Class ImageHandler
  *
  * @copyright  Olivier El Mekki, 2009 
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Renderer
  */
 
-class ImageRenderer extends System
+class ImageHandler extends System
 {
   protected $original_size;
   protected $imageSRC;
@@ -46,70 +42,53 @@ class ImageRenderer extends System
   protected $imageType;
 
 
-  public function __construct()
-  {
-    parent::__construct();
-    $action = $this->Input->get( 'action' );
-    if ( method_exists( $this, $action ) )
-    {
-      $this->$action();
-    }
-
-    die();
-  }
-
-
   /**
    * Resize an image
+   *
+   * @param string    the type of resizing, 'width' or 'height'
+   * @param int       the value of the ref side
+   * @param string    the path of the initial image
+   * @param string    the path of the dest image. A new one is created in system/tmp if none
+   * @param bool      force cache regeneration
    */
-  protected function resizer()
+  public function resizer( $resizingType, $value, $orig, $dest = null, $clearCache = false )
   {
-    $this->imageSRC = urldecode( $this->Input->get( 'file' ) );
+    $this->imageSRC = $orig;
     if ( ! file_exists( TL_ROOT . '/' . $this->imageSRC ) )
     {
-      die();
+      return false;
     }
 
     $this->getImageType();
 
-    $value = $this->Input->get( 'value' );
     if ( ! is_numeric( $value ) )
     {
-      die();
+      return false;
     }
 
 
-    $type = $this->Input->get( 'type' );
-    switch( $type )
+    if ( $value > 1000 )
     {
-    case 'width':
-      if ( $value > 1000 )
-      {
-        $value = 1000;
-      }
+      $value = 1000;
+    }
+
+    if ( $resizingType == 'width' )
+    {
       $resized = $this->getSizeByWidth( $value );
-      break;
+    }
 
-    case 'height':
-      if ( $value > 1000 )
-      {
-        $value = 1000;
-      }
+    else
+    {
       $resized = $this->getSizeByHeight( $value );
-      break;
-
-    default:
-      die();
     }
 
 
-    $cache_name =  TL_ROOT . '/system/html/' . md5( $this->imageSRC . $type . $value ) . '.' . $this->imageType;
-    if ( file_exists( $cache_name ) )
+
+    $cache_name     = 'system/html/' . md5( $this->imageSRC . $resizingType . $value ) . '.' . $this->imageType;
+    $abs_cache_name = TL_ROOT . '/' . $cache_name;
+    if ( ! $clearCache and file_exists( $abs_cache_name ) )
     {
-      header( "Cache-Control: no-cache, must-revalidate" );
-      header( "Content-Type: image/" . $this->imageType );
-      echo file_get_contents( $cache_name );
-      return;
+      return $cache_name;
     }
 
 
@@ -134,25 +113,37 @@ class ImageRenderer extends System
     imagecopyresampled( $dest_img, $orig_img, 0, 0, 0, 0, $resized[0], $resized[1], $this->original_size[0], $this->original_size[1] );
 
 
-    /* send */
-    header( "Cache-Control: no-cache, must-revalidate" );
-    header( "Content-Type: image/" . $this->imageType );
+    if ( ! strlen( $dest ) )
+    {
+      $dest = $abs_cache_name;
+    }
 
+    /* send */
     if ( $this->imageType == 'png' )
     {
-      imagepng( $dest_img, $cache_name, 0, PNG_ALL_FILTERS );
-      imagepng( $dest_img, NULL, 0, PNG_ALL_FILTERS );
+      imagepng( $dest_img, $abs_cache_name, 0, PNG_ALL_FILTERS );
+
+      if ( $abs_cache_name != $dest )
+      {
+        imagepng( $dest_img, $dest, 0, PNG_ALL_FILTERS );
+      }
     }
 
     else
     {
-      imagejpeg( $dest_img, $cache_name, 100 );
-      imagejpeg( $dest_img, NULL, 100 );
+      imagejpeg( $dest_img, $abs_cache_name, 100 );
+
+      if ( $abs_cache_name != $dest )
+      {
+        imagejpeg( $dest_img, TL_ROOT . '/' . $dest, 100 );
+      }
     }
+
     /* tear down */
     imagedestroy( $orig_img );
     imagedestroy( $dest_img );
-    die();
+
+    return $cache_name;
   }
 
 
@@ -163,7 +154,7 @@ class ImageRenderer extends System
    *
    * @arg resource    the image to flip
    */
-  function imageFlip(&$img) {
+  public function flipper(&$img) {
     $size_x = imagesx($img);
     $size_y = imagesy($img);
     $temp = imagecreatetruecolor($size_x, $size_y);
@@ -172,12 +163,16 @@ class ImageRenderer extends System
     imagealphablending( $temp, false );
     imagesavealpha( $temp, true );
     $x = imagecopyresampled($temp, $img, 0, 0, ($size_x-1), 0, $size_x, $size_y, 0-$size_x, $size_y);
-    if ($x) {
+
+    if ($x) 
+    {
       imagedestroy( $img );
       $img = $temp;
+      return true;
     }
-    else {
-      die("Unable to flip image");
+    else 
+    {
+      return false;
     }
   }
 
@@ -199,7 +194,7 @@ class ImageRenderer extends System
 
       else
       {
-        die();
+        throw new Exception( 'Only jpg and png are supported for now' );
       }
     }
 
@@ -236,7 +231,7 @@ class ImageRenderer extends System
   {
     $this->getOriginalSize();
     $this->getRatio();
-    return array( $width, (int) ( $width * $this->ratio ) );
+    return array( $width, (float) ( $width / $this->ratio ) );
   }
 
 
@@ -245,8 +240,6 @@ class ImageRenderer extends System
   {
     $this->getOriginalSize();
     $this->getRatio();
-    return array( (int) ( $height / $this->ratio ), $height );
+    return array( (float) ( $height * $this->ratio ), $height );
   }
 }
-
-new ImageRenderer();

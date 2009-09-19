@@ -394,32 +394,6 @@ abstract class RoutedModule extends Module
 
 
   /**
-   * Resize an image by width
-   * @param int     width
-   * @param string  the path of the file to resize
-   * return string  path to the renderer
-   */
-  public function resizeImageByWidth( $width, $path )
-  {
-    return $GLOBALS[ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=width&file=' . urlencode( $path ) . '&value=' . $width;
-  }
-
-
-
-  /**
-   * Resize an image by height
-   * @param int     height
-   * @param string  the path of the file to resize
-   * return string  path to the renderer
-   */
-  public function resizeImageByHeight( $height, $path )
-  {
-    return $GLOBALS[ 'websitePath' ] . '/system/modules/framework/ImageRenderer.php?action=resizer&type=height&file=' . urlencode( $path ) . '&value=' . $height;
-  }
-
-
-
-  /**
    * Helper to do some pagination
    *
    * @param   mixed     collection of objects on which pagination will be done or object on which to use getALl()
