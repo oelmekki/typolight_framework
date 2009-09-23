@@ -46,6 +46,7 @@ abstract class RoutedModule extends Module
   protected $arrCache = array();
   protected $uncachable = array();
   protected $arrActions = array();
+  protected $helper;
 
   public function __construct( Database_Result $objModule, $strColumn = 'main', $templateClass = 'FrontendTemplate' )
   {
@@ -205,19 +206,19 @@ abstract class RoutedModule extends Module
       $this->arrStyle[] = 'margin-bottom:'.$this->arrData['space'][1].'px;';
     }
 
-    $this->Template->style = count($this->arrStyle) ? implode(' ', $this->arrStyle) : '';
-    $this->Template->cssID = strlen($this->cssID[0]) ? ' id="' . $this->cssID[0] . '"' : '';
-    $this->Template->class = trim('mod_' . $this->type . ' ' . $this->cssID[1]);
-
+    $this->Template->style    = count($this->arrStyle) ? implode(' ', $this->arrStyle) : '';
+    $this->Template->cssID    = strlen($this->cssID[0]) ? ' id="' . $this->cssID[0] . '"' : '';
+    $this->Template->class    = trim('mod_' . $this->type . ' ' . $this->cssID[1]);
     $this->Template->headline = $this->headline;
-    $this->Template->hl = $this->hl;
+    $this->Template->hl       = $this->hl;
 
 
     $this->$action();
-    $this->Template->lang = $this->lang;
 
-    $this->Template->pagename = $this->pagename;
-    $this->Template->absolute_pagename = $this->absolutePagename;
+    $this->Template->lang               = $this->lang;
+    $this->Template->pagename           = $this->pagename;
+    $this->Template->absolute_pagename  = $this->absolutePagename;
+    $this->Template->helper             = $this->helper;
 
     if ( $this->isJson )
     {
@@ -499,6 +500,36 @@ abstract class RoutedModule extends Module
     $pagination->lang       = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'framework_pagination' ];
 
     $this->pagination = $pagination->parse();
+  }
+
+
+  /**
+   * Find helpers for this controller
+   */
+  protected function getHelper()
+  {
+    $helper     = null;
+    $helperName = get_class( $this ) . 'Helper';
+
+    if ( ! class_exists( $helperName, false ) )
+    {
+      foreach ( glob( TL_ROOT . '/system/modules/*' ) as $module )
+      {
+        if ( file_exists( $module . '/' . $helperName . '.php' ) )
+        {
+          require( $module . '/' . $helperName . '.php' );
+          $helper = new $helperName();
+          break;
+        }
+      }
+
+      if ( ! $helper )
+      {
+        $helper = new FwHelper();
+      }
+    }
+
+    $this->helper = $helper;
   }
 }
 
