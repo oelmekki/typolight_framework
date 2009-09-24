@@ -195,7 +195,7 @@ abstract class RoutedModule extends Module
     $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/Preloader.js';
 
 
-    $this->Template = new $templateClass( 'fe_' . $this->controller . '_' . $action );
+    $this->Template = new $templateClass( 'mod_' . $this->controller . '_' . $action );
     if (strlen($this->arrData['space'][0]))
     {
       $this->arrStyle[] = 'margin-top:'.$this->arrData['space'][0].'px;';
@@ -493,7 +493,7 @@ abstract class RoutedModule extends Module
     }
 
 
-    $pagination = new FrontendTemplate( 'fe_framework_pagination' );
+    $pagination = new FrontendTemplate( 'mod_framework_pagination' );
     $pagination->links      = $links;
     $pagination->page_count = $page_count;
     $pagination->selected   = $page;
