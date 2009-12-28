@@ -152,22 +152,7 @@ class Route extends EModel
    */
   public static function compose( $name, $params=array(), $format = 'html' )
   {
-    $route = new Route() ;
-    if ( ! $route->findBy( 'name', $name ) )
-    {
-      return '' ;
-    }
-
-    $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
-
-    foreach ( $params as $param => $value )
-    {
-      if ( strpos( $path, ':' . $param ) !== false )
-      {
-        $path = str_replace( ':' . $param, $value, $path ) ;
-      }
-    }
-
+    // find suffix
     switch ( $format )
     {
     case 'html':
@@ -179,7 +164,55 @@ class Route extends EModel
       break;
     }
 
-    return $path . $suffix ;
+    $route = new Route() ;
+    if ( $route->findBy( 'name', $name ) )
+    {
+      $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
+
+      foreach ( $params as $param => $value )
+      {
+        if ( strpos( $path, ':' . $param ) !== false )
+        {
+          $path = str_replace( ':' . $param, $value, $path ) ;
+        }
+      }
+
+      return $path . $suffix ;
+    }
+
+    else
+    {
+      $paramStr = '';
+
+      if ( count( $params ) )
+      {
+        $paramStr = '?';
+        foreach ( $params as $param => $value )
+        {
+          $paramStr .= $param . '=' . $value . ';';
+        }
+      }
+
+      $page = new FwPage();
+
+      if ( $page->findBy( 'alias', $name ) and $page->accessible )
+      {
+        $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $name;
+        return $path . $suffix . $paramStr;
+      }
+
+      else
+      {
+        $env  = Environment::getInstance();
+        $path = $env->url . TL_PATH . '/' . $paramStr;
+        return $path;
+      }
+
+
+    }
+
+
+
   }
 
 
