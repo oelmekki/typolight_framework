@@ -1061,7 +1061,7 @@ abstract class EModel extends Model
     /* parses the field list */
     $fields = preg_split( self::FIND_DELIM, $where_clause_str ) ;
     $delims = array() ;
-    preg_match_all( self::FIND_DELIM, $where_clause_str, &$delims ) ;
+    preg_match_all( self::FIND_DELIM, $where_clause_str, $delims ) ;
 
     if ( count( $fields ) != count( $params ) )
     {
