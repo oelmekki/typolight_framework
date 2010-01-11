@@ -37,7 +37,7 @@
 class FwPage extends EModel
 {
   protected $strTable   = "tl_page" ;
-  protected $belongsTo  = array( 'FwPage' );
+  protected $treeAssoc  = true;
 
   public function getAccessible()
   {

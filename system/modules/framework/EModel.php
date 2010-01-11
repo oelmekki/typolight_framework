@@ -50,23 +50,24 @@ abstract class EModel extends Model
   /**
    * Arrays to manage associations
    */
-  protected $belongsTo = array();
-  protected $hasOne = array();
-  protected $hasMany = array();
-  protected $hasOneThrough = array();
-  protected $manyToMany = array();
+  protected $belongsTo      = array();
+  protected $hasOne         = array();
+  protected $hasMany        = array();
+  protected $hasOneThrough  = array();
+  protected $manyToMany     = array();
+  protected $treeAssoc      = false;
 
 
   /**
    * Arrays to manage validation
    */
-  protected $validates_presence_of = array();
-  protected $validates_uniqueness_of = array();
-  protected $validates_format_of = array();
-  protected $validates_numericality_of = array();
-  protected $validates_min_length_of = array();
-  protected $validates_max_length_of = array();
-  protected $validates_associated = array();
+  protected $validates_presence_of      = array();
+  protected $validates_uniqueness_of    = array();
+  protected $validates_format_of        = array();
+  protected $validates_numericality_of  = array();
+  protected $validates_min_length_of    = array();
+  protected $validates_max_length_of    = array();
+  protected $validates_associated       = array();
 
 
   /**
@@ -91,8 +92,8 @@ abstract class EModel extends Model
   /**
    *  cache 
    */
-  protected $arrCache = array();
-  protected $uncachable = array();
+  protected $arrCache     = array();
+  protected $uncachable   = array();
 
   /**
    * intern
@@ -228,6 +229,7 @@ abstract class EModel extends Model
           return false;
         }
       }
+
       else
       {
         if ( $this->Database->fieldExists( 'created_at', $this->strTable ) )
@@ -512,6 +514,7 @@ abstract class EModel extends Model
   }
 
 
+
   /**
    * Get all id's, so we can use in_array
    * @param mixed     collection : an array of models to get the id from.
@@ -665,6 +668,119 @@ abstract class EModel extends Model
     }
 
     throw new Exception( 'undefined method:' . $stmt );
+  }
+
+
+
+  /**
+   * Find parent - treeAssoc relationship
+   * @return obj
+   */
+  public function treeParent()
+  {
+    if ( $this->arrCache[ 'associations' ][ 'treeParent' ] )
+    {
+      return $this->arrCache[ 'associations' ][ 'treeParent' ];
+    }
+
+    $class        = get_class( $this );
+    $owner_field  = 'pid';
+    $parent       = new $class( $this->pid );
+
+    $this->arrCache[ 'associations' ][ 'treeParent' ] = $parent;
+    return $parent;
+  }
+
+
+
+  /**
+   * Find children - treeAssoc relationship
+   * @arg   mixed    the where clause array
+   * @return mixed
+   */
+  public function treeChildren( $clauses = array() )
+  {
+    if ( $this->arrCache[ 'associations' ][ 'treeChildren' ] and ! count( $clauses ) )
+    {
+      return $this->arrCache[ 'associations' ][ 'treeChildren' ];
+    }
+
+    $class          = get_class( $this );
+    $carbon         = new $class();
+
+    $where_clause = array( 'pid = ?', $this->id );
+    if ( count( $clauses ) )
+    {
+      if ( is_array( $clauses[1] ) and count( $clauses[1] ) )
+      {
+        $where_clause[0] .= ' and ' . $clauses[1][0];
+        unset( $clauses[1][0] );
+        $where_clause = array_merge( $where_clause, $clauses[1] );
+      }
+
+      $children = $carbon->getAll( $clauses[0], $where_clause, $clauses[2] );
+    }
+
+    else
+    {
+      $children = $carbon->getAll( 'id', $where_clause );
+      $this->arrCache[ 'associations' ][ 'treeChildren' ] = $children;
+    }
+
+    return $children;
+  }
+
+
+
+  /**
+   * Say if current object is child of given object - treeAssoc relationship
+   * @arg     mixed    the relative
+   * @return  mixed
+   **/
+  public function isChildOf( $relative )
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $children = $relative->descendants;
+    $ids      = $relative->ids( $children );
+
+    return in_array( $this->id, $ids );
+  }
+
+
+
+  public function isParentOf( $relative )
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $children = $this->descendants;
+    $ids      = $this->ids( $children );
+
+    return in_array( $relative->id, $ids );
+  }
+
+
+
+  public function getDescendants()
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $descendants = array( $this );
+    foreach ( $this->treeChildren() as $child ) 
+    {
+      $descendants = array_merge( $descendants, $child->descendants );
+    }
+
+    return $descendants;
   }
 
 
