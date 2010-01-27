@@ -111,10 +111,9 @@ abstract class EModel extends Model
     $this->uncachable[] = 'data';
     parent::__construct();
 
-    $language = ( $objPage and strlen( $objPage->language ) ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ];
     if ( ! isset( $GLOBALS[ 'TL_LANG' ][ 'MSC' ] ) )
     {
-      $this->loadLanguageFile( 'default', $language );
+      $this->loadLanguageFile( 'default', $GLOBALS[ 'TL_LANGUAGE' ] );
     }
 
     $this->lang = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
