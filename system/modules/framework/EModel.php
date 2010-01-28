@@ -183,7 +183,7 @@ abstract class EModel extends Model
    *
    * If an attribute is put in this array, the save() method
    * will be stopped and an error will be set if the value for this
-   * attribute is null.
+   * attribute is null or an empty string.
    */
   protected $validates_presence_of      = array();
 
@@ -196,10 +196,75 @@ abstract class EModel extends Model
    * attribute already exists in the same table.
    */
   protected $validates_uniqueness_of    = array();
+
+
+  /**
+   * @var array (associative) attributes to validate format of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if the value for this
+   * attribute doesn't match the regex.
+   *
+   * Example :
+   * <code>
+   * protected $validates_format_of = array( 'hour' => '/^\d{2}:\d{2} *(?:AM|PM)?$/' );
+   * </code>
+   */
   protected $validates_format_of        = array();
+
+
+  /**
+   * @var array attributes to validate numericality of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if the value for this
+   * attribute is not numeric.
+   */
   protected $validates_numericality_of  = array();
+
+
+  /**
+   * @var array (associative) attributes to validate minimum length of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if length of the value for this
+   * attribute is lower (<)  than specified.
+   *
+   * Example :
+   * <code>
+   * protected $validates_min_length_of = array( 'nick' => 4 );
+   * </code>
+   */
   protected $validates_min_length_of    = array();
+
+
+  /**
+   * @var array (associative) attributes to validate maximum length of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if length of the value for this
+   * attribute is greater (>) than specified.
+   *
+   * Example :
+   * <code>
+   * protected $validates_max_length_of = array( 'nick' => 16 );
+   * </code>
+   */
   protected $validates_max_length_of    = array();
+
+
+  /**
+   * @var array attributes to validate association with
+   *
+   * If a class name is put in this array, the save() method
+   * will be stopped and an error will be set if the object
+   * is not associated with at least one object for this class.
+   *
+   * Example for a Post model:
+   * <code>
+   * protected $validates_associated = array( 'Author', 'Category' );
+   * </code>
+   */
   protected $validates_associated       = array();
 
 
@@ -477,7 +542,7 @@ abstract class EModel extends Model
 
     foreach ( $this->validates_max_length_of as $attr => $max_length )
     {
-      if ( strlen( $this->$attr ) < $max_length )
+      if ( strlen( $this->$attr ) > $max_length )
       {
         $this->setError( $this->lang[ $attr . '_max_length' ], $attr );
       }
@@ -486,9 +551,17 @@ abstract class EModel extends Model
 
     foreach ( $this->validates_associated as $attr )
     {
-      if ( ! $this->$attr() )
+      try
       {
-        $this->setError( $this->lang[ $attr . '_associated' ], $attr );
+        if ( ! $this->$attr() )
+        {
+          $this->setError( $this->lang[ $attr . '_associated' ], $attr );
+        }
+      }
+
+      catch( $e )
+      {
+          $this->setError( $this->lang[ $attr . '_associated' ], $attr );
       }
     }
 
