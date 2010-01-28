@@ -178,10 +178,23 @@ abstract class EModel extends Model
   protected $treeAssoc = false;
 
 
-  /*
-   * Arrays to manage validation
+  /**
+   * @var array attributes to validate presence of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if the value for this
+   * attribute is null.
    */
   protected $validates_presence_of      = array();
+
+
+  /**
+   * @var array attributes to validate uniqueness of
+   *
+   * If an attribute is put in this array, the save() method
+   * will be stopped and an error will be set if the value for this
+   * attribute already exists in the same table.
+   */
   protected $validates_uniqueness_of    = array();
   protected $validates_format_of        = array();
   protected $validates_numericality_of  = array();
@@ -411,7 +424,7 @@ abstract class EModel extends Model
   {
     foreach ( $this->validates_presence_of as $attr )
     {
-      if ( ! strlen( $this->$attr ) )
+      if ( is_null( $this->attr ) or ( is_string( $this->attr ) and ! strlen( $this->$attr ) ) )
       {
         $this->setError( $this->lang[ $attr . '_required' ], $attr );
       }
