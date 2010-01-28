@@ -38,7 +38,7 @@
 abstract class EModel extends Model
 {
 
-  /**
+  /*
    * Constants used by the dynamic finder 
    */
   const FIND_FIRST  = 'find_first_by_';
@@ -48,17 +48,137 @@ abstract class EModel extends Model
 
 
   /**
-   * Arrays to manage associations
+   * @var array Association "belongs to".
+   *
+   * Put in this array the parent classes of your class.
+   *
+   * The table for the current model should have a field <em>modelname</em>_id .
+   * The model name in that field must be lowercase.
+   * If it does not exist, the pid field will used instead.
+   *
+   * Example for a Comment class:
+   * <code>
+   * protected $belongsTo = array( 'Post', 'NewsItem' );
+   * </code>
+   *
+   * This array allow to get a parent object by calling its name as method.
+   * <code>
+   * $post = $comment->Post();
+   * </code>
    */
-  protected $belongsTo      = array();
-  protected $hasOne         = array();
-  protected $hasMany        = array();
-  protected $hasOneThrough  = array();
-  protected $manyToMany     = array();
-  protected $treeAssoc      = false;
+  protected $belongsTo = array();
 
 
   /**
+   * @var array Association "has one".
+   *
+   * Put in this array the child classes of your class.
+   *
+   * This is the opposite of $belongsTo. If a class name is listed there, there must
+   * be a field <em>modelname</em>_id or pid in the table of the child.
+   *
+   * This association is to be used one there is only one child of this class.
+   *
+   * Example for a Post class:
+   * <code>
+   * protected $hasOne = array( 'Author' );
+   * </code>
+   *
+   * This array allow to get a unique child object by calling its name as method.
+   * <code>
+   * $author = $post->Author();
+   * </code>
+   *
+   * The return value is an EModel or null.
+   */
+  protected $hasOne = array();
+
+
+  /**
+   * @var array Association "has many".
+   *
+   * Put in this array the child classes of your class.
+   *
+   * Works like $hasOne, except it implies multiple children for a same class.
+   *
+   * Example for a Post class:
+   * <code>
+   * protected $hasMany = array( 'Comment' );
+   * </code>
+   *
+   * This array allow to get an array of children object by calling their class name as method.
+   * <code>
+   * $comments = $post->Comment();
+   * </code>
+   *
+   * The return value is an EModel or null.
+   */
+  protected $hasMany = array();
+
+
+  /**
+   * @var array (associative) Association "has one through".
+   *
+   * Put in this array the classes you want to access through an other associated class.
+   *
+   * The result will be found put delegating the call to an other class from $hasOne or $belongsTo
+   *
+   * Example for a Comment class:
+   * <code>
+   * protected $hasThrough = array( 'Theme' => 'Post' );
+   * </code>
+   *
+   * Can be used like this :
+   * <code>
+   * $theme = $comment->Theme();
+   * </code>
+   *
+   * The return value is an EModel or null if through class $hasOne or $belongsTo target,
+   * it is an array of EModel's or an empty array if through class $hasMany target.
+   */
+  protected $hasThrough = array();
+
+
+  /**
+   * @var array (associative) Association "many to many".
+   *
+   * Put in this array the associated class and the jointure table.
+   *
+   * The jointure table must have two fields formated : <em>modelname</em>_id .
+   * The model names in those fields must be lowercase.
+   *
+   * Example for a Post class:
+   * <code>
+   * protected $manyToMany = array( 'Category' => 'tl_posts_categories' );
+   * </code>
+   *
+   * Can be used like this :
+   * <code>
+   * $categories = $post->Categories();
+   * 
+   * // and reverse
+   * $category = $categories[0];
+   * $posts    = $category->Post();
+   * </code>
+   *
+   * The return value is an array of EModel's or an empty array.
+   */
+  protected $manyToMany = array();
+
+
+
+  /**
+   * @var bool acts as a tree flag
+   *
+   * If set to true, the EModel is child and parent of its own class.
+   * Its table should have a pid field handling the id of its parent.
+   *
+   * This enable the use of treeChildren(), treeParent(), getDescendants(), isChildOf() and isParentOf().
+   */
+  protected $treeAssoc = false;
+
+
+  /*
    * Arrays to manage validation
    */
   protected $validates_presence_of      = array();
@@ -126,7 +246,7 @@ abstract class EModel extends Model
 
 
   /**
-   * Check if a getter method exists
+   * Check if a getter method exists.
    *
    * @param string  the attribute name
    * @return mixed
@@ -656,9 +776,9 @@ abstract class EModel extends Model
       return $this->children( $stmt, $params );
     }
 
-    if ( array_key_exists( $stmt, $this->hasOneThrough ) )
+    if ( array_key_exists( $stmt, $this->hasThrough ) )
     {
-      return $this->oneThrough( $stmt );
+      return $this->through( $stmt );
     }
 
     if ( array_key_exists( $stmt, $this->manyToMany ) )
@@ -878,18 +998,18 @@ abstract class EModel extends Model
    * Find a related through an other
    * @return mixed
    */
-  public function oneThrough( $class )
+  public function through( $class )
   {
     if ( $this->arrCache[ 'associations' ][ $class ] )
     {
       return $this->arrCache[ 'associations' ][ $class ];
     }
 
-    $through = $this->hasOneThrough[ $class ];
+    $through = $this->hasThrough[ $class ];
     $step    = $this->$through();
-    $one     = $step->$class();
-    $this->arrCache[ 'associations' ][ $class ] = $one;
-    return $one;
+    $target  = $step->$class();
+    $this->arrCache[ 'associations' ][ $class ] = $target;
+    return $target;
   }
 
 
@@ -906,10 +1026,12 @@ abstract class EModel extends Model
       return $this->arrCache[ 'associations' ][ $class ];
     }
 
-    $relateds = array();
+    $relateds           = array();
+    $currentClassField  = strtolower( get_class( $this ) ) . '_id';
+    $targetClassField   = strtolower( $class ) . '_id';
+    $table              = $this->manyToMany[ $class ];
 
-    $table = $this->manyToMany[ $class ];
-    $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ?", $table, get_class( $this ) ) )
+    $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ?", $table, $currentClassField ) )
                              ->execute( $this->id );
 
     $carbon = new $class();
@@ -918,7 +1040,7 @@ abstract class EModel extends Model
     while ( $record->next() )
     {
       $related = clone $carbon;
-      $where_clause = array( 'id = ?', $record->$class );
+      $where_clause = array( 'id = ?', $record->$targetClassField );
 
       // order, where and/or limit clauses have been defined
       if ( count( $clauses ) )
@@ -1277,7 +1399,7 @@ abstract class EModel extends Model
           continue;
         }
 
-        foreach ( $this->hasOneThrough as $through )
+        foreach ( $this->hasThrough as $through )
         {
           if ( $key == $through[0] )
           {
