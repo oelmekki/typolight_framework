@@ -1,0 +1,8 @@
+tl_example_emodel_validations:
+  record_1:
+    id: '1'
+    tstamp: '1264765466'
+    created_at: '1264765466'
+    name: 'a test name'
+    phone: '0123456789'
+    exampleemodel1_id: '0'

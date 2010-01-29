@@ -1,0 +1,6 @@
+tl_example_emodel_1:
+  record_1:
+    id: '1'
+    tstamp: '1264613037'
+    created_at: '1264613037'
+    name: example1-1
