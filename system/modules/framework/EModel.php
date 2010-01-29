@@ -561,9 +561,8 @@ abstract class EModel extends Model
 
 
 
-  /**
-   * Override this method to add some validation
-   * You can add errors with setError() 
+  /*
+   * Validatations
    *
    * @return boolean
    */
@@ -647,9 +646,21 @@ abstract class EModel extends Model
       }
     }
 
+    $this->customValidate();
+
     return ! $this->hasErrors();
   }
 
+
+  /**
+   * Override this method to add custom validations.
+   *
+   * The return value of this function is ignored, but
+   * you can use setError() to prevent record from being saved.
+   **/
+  protected function customValidate()
+  {
+  }
 
 
   /**
