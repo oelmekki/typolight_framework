@@ -572,7 +572,13 @@ abstract class EModel extends Model
     {
       if ( is_null( $this->attr ) or ( is_string( $this->attr ) and ! strlen( $this->$attr ) ) )
       {
-        $this->setError( $this->lang[ $attr . '_required' ], $attr );
+        $message = $this->lang[ $attr . '_required' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_presence_of' ], $attr );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 
@@ -581,15 +587,16 @@ abstract class EModel extends Model
     {
       $class = get_class( $this );
       $model = new $class();
-      $finder = 'find_all_by_' . $attr;
-      $others = $model->$finder( $this->$attr );
-      foreach ( $others as $other )
+
+      if ( $model->getCount( array( "$attr = ?", $this->$attr ) ) > 0 )
       {
-        if ( $other->id != $this->id )
+        $message = $this->lang[ $attr . '_uniqueness' ];
+        if ( ! strlen( $message ) )
         {
-          $this->setError( $this->lang[ $attr . '_uniqueness' ], $attr );
-          break;
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_uniqueness_of' ], $this->$attr );
         }
+
+        $this->setError( $message, $attr );
       }
     }
 
@@ -598,7 +605,13 @@ abstract class EModel extends Model
     {
       if ( ! preg_match( $format, $this->$attr ) )
       {
-        $this->setError( $this->lang[ $attr . '_format' ], $attr );
+        $message = $this->lang[ $attr . '_format' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_format_of' ], $attr );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 
@@ -607,7 +620,13 @@ abstract class EModel extends Model
     {
       if ( ! is_numeric( $this->$attr ) )
       {
-        $this->setError( $this->lang[ $attr . '_numericality' ], $attr );
+        $message = $this->lang[ $attr . '_numericality' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_numericality_of' ], $attr );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 
@@ -616,7 +635,13 @@ abstract class EModel extends Model
     {
       if ( strlen( $this->$attr ) < $min_length )
       {
-        $this->setError( $this->lang[ $attr . '_min_length' ], $attr );
+        $message = $this->lang[ $attr . '_min_length' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_min_length_of' ], $attr, $min_length );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 
@@ -625,24 +650,43 @@ abstract class EModel extends Model
     {
       if ( strlen( $this->$attr ) > $max_length )
       {
-        $this->setError( $this->lang[ $attr . '_max_length' ], $attr );
+        $message = $this->lang[ $attr . '_max_length' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_max_length_of' ], $attr, $max_length );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 
 
     foreach ( $this->validates_associated as $attr )
     {
+      $error = false;
       try
       {
-        if ( ! $this->$attr() )
+        $associated = $this->$attr();
+        if ( ! $associated or ( is_array( $associated ) and ! count( $associated ) ) )
         {
-          $this->setError( $this->lang[ $attr . '_associated' ], $attr );
+          $error = true;
         }
       }
 
       catch ( Exception $e )
       {
-          $this->setError( $this->lang[ $attr . '_associated' ], $attr );
+        $error = true;
+      }
+
+      if ( $error )
+      {
+        $message = $this->lang[ $attr . '_associated' ];
+        if ( ! strlen( $message ) )
+        {
+          $message = sprintf( $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ][ 'validates_associated' ], get_class( $this ), $attr );
+        }
+
+        $this->setError( $message, $attr );
       }
     }
 

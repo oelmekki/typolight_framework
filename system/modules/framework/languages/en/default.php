@@ -64,3 +64,13 @@ $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
   'toggle-show'   => 'Show',
   'toggle-hide'   => 'Hide',
 );
+
+$GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ] = array(
+  'validates_presence_of'     => '%s is required',
+  'validates_uniqueness_of'   => '%s is already taken',
+  'validates_format_of'       => '%s is not formated as expected',
+  'validates_numericality_of' => '%s should be numerical',
+  'validates_min_length_of'   => '%s should be longer than %s letters',
+  'validates_max_length_of'   => '%s should be lesser than %s letters',
+  'validates_associated'      => '%s should be associated with %s',
+);
