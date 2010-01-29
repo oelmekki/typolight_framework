@@ -38,15 +38,6 @@
 abstract class EModel extends Model
 {
 
-  /*
-   * Constants used by the dynamic finder 
-   */
-  const FIND_FIRST  = 'find_first_by_';
-  const FIND_ALL    = 'find_all_by_';
-  const FIND_DELIM  = '(_and_|_or_|_and_not_)';
-  const FIND_ORDER  = '_order_by_';
-
-
   /**
    * @var array Association "belongs to".
    *
@@ -185,7 +176,7 @@ abstract class EModel extends Model
    * will be stopped and an error will be set if the value for this
    * attribute is null or an empty string.
    */
-  protected $validates_presence_of      = array();
+  protected $validates_presence_of = array();
 
 
   /**
@@ -195,7 +186,7 @@ abstract class EModel extends Model
    * will be stopped and an error will be set if the value for this
    * attribute already exists in the same table.
    */
-  protected $validates_uniqueness_of    = array();
+  protected $validates_uniqueness_of = array();
 
 
   /**
@@ -210,7 +201,7 @@ abstract class EModel extends Model
    * protected $validates_format_of = array( 'hour' => '/^\d{2}:\d{2} *(?:AM|PM)?$/' );
    * </code>
    */
-  protected $validates_format_of        = array();
+  protected $validates_format_of = array();
 
 
   /**
@@ -220,7 +211,7 @@ abstract class EModel extends Model
    * will be stopped and an error will be set if the value for this
    * attribute is not numeric.
    */
-  protected $validates_numericality_of  = array();
+  protected $validates_numericality_of = array();
 
 
   /**
@@ -235,7 +226,7 @@ abstract class EModel extends Model
    * protected $validates_min_length_of = array( 'nick' => 4 );
    * </code>
    */
-  protected $validates_min_length_of    = array();
+  protected $validates_min_length_of = array();
 
 
   /**
@@ -250,7 +241,7 @@ abstract class EModel extends Model
    * protected $validates_max_length_of = array( 'nick' => 16 );
    * </code>
    */
-  protected $validates_max_length_of    = array();
+  protected $validates_max_length_of = array();
 
 
   /**
@@ -265,44 +256,83 @@ abstract class EModel extends Model
    * protected $validates_associated = array( 'Author', 'Category' );
    * </code>
    */
-  protected $validates_associated       = array();
+  protected $validates_associated = array();
 
 
   /**
-   * Array to list attributes that can be send through json.
+   * @var array Array to list attributes that can be send through json.
+   *
+   * If you want to use the json layer, put the attribute that can be accessed
+   * as json in this array.
    * Empty by default for security reasons.
    */
   protected $jsonable = array();
 
 
   /**
-   *  language array 
-   */
+   * @var array Language array
+   *
+   * This array stock languages informations.
+   * It is a shortcut for $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ '<em>ModelName</em>' ]
+   **/
   public $lang;
 
 
   /**
-   *  errors 
-   */
-  protected $arrErrors = array();
+   * @var array uncachable array
+   *
+   * By default, getters, setters and associations cache their return value for
+   * faster retrieval. Caching can still be bypassed par calling a getter by its
+   * function name instead that by virtual attribute, but if a attribute must
+   * never be cached, you can put it in this array.
+   **/
+  protected $uncachable = array();
 
 
-  /**
-   *  cache 
-   */
-  protected $arrCache     = array();
-  protected $uncachable   = array();
 
-  /**
-   * intern
-   */
   protected $_order_clause;
+  protected $arrErrors = array();
+  protected $arrCache  = array();
+
+  const FIND_FIRST  = 'find_first_by_';
+  const FIND_ALL    = 'find_all_by_';
+  const FIND_DELIM  = '(_and_|_or_|_and_not_)';
+  const FIND_ORDER  = '_order_by_';
+
 
 
   /**
-   * Let this be public, instead
-   * Let directly find a record if an id is specified
-   * @arg id
+   * Constructor
+   *
+   * There are two way to use this constructor :
+   *
+   * <em>1°) In order to create a new object</em>
+   * You can simply call the constructor to get a new object. Then, set its attributes
+   * and save it to have a new record.
+   *
+   * <code>
+   * $myModel = new MyModel();
+   * $myModel->anAttr = 'aValue';
+   * $myModel->save();
+   * </code>
+   *
+   * <em>2°) In order to find a record</em>
+   * You can also use the constructor to directly retrieve a record by its id.
+   * Please note that there is no mean to know if the record actually exists
+   * when the constructor return. So if you're unsure of its existence, please
+   * use findBy() instead.
+   *
+   * <code>
+   * $author = new Author( 10 );
+   *
+   * // make sense in a dca callback, until typolight 2.8 :
+   * public function onSubmit( $dca )
+   * {
+   *   $author = new Author( $dca->id );
+   * }
+   * </code>
+   *
+   * @param interger id of the record to retrieve
    */
   public function __construct( $id = false )
   {
@@ -324,10 +354,37 @@ abstract class EModel extends Model
 
 
   /**
-   * Check if a getter method exists.
+   * Getters can be set to use some virtual attributes.
+   * If something as you work with an object represents a state or a value,
+   * rather than being an action, it should definitivly be an attribute,
+   * not a method, wether the return value is computed or not.
    *
-   * @param string  the attribute name
-   * @return mixed
+   * This implementation of getters let you declare virtual attributes as
+   * simply as this :
+   * <code>
+   * public function getSomething()
+   * {
+   *   $part1 = strtolower( $this->anAttr );
+   *   $part2 = trim( $this->anOther );
+   *   return $part1 . ' ' . $part2;
+   * }
+   * </code>
+   *
+   * You can then call your virtual attribute as any regular one :
+   * <code>
+   * echo $myModel->something;
+   * </code>
+   *
+   * Please note the format : getSomething() has a capital 'S' that becomes
+   * lowercase 's' in the virtual attribute name.
+   *
+   * Result will be cached, so any further call will product the same
+   * result. If you want to prevent this, add "something" in the
+   * $uncachable array.
+   *
+   * As a bonus, a setter method will be automatically created as well. It
+   * simply replace or set the cached value with the argument. If you need
+   * something more elaborated, see __set().
    */
   public function __get( $key )
   {
@@ -336,9 +393,9 @@ abstract class EModel extends Model
       return $this->arrData[ $key ];
     }
 
-    $firstLetter = substr( $key, 0, 1 );
-    $rest = substr( $key, 1 );
-    $getter = 'get' . strtoupper( $firstLetter ) . $rest;
+    $firstLetter  = substr( $key, 0, 1 );
+    $rest         = substr( $key, 1 );
+    $getter       = 'get' . strtoupper( $firstLetter ) . $rest;
 
     if ( method_exists( $this, $getter ) )
     {
@@ -362,23 +419,31 @@ abstract class EModel extends Model
 
 
   /**
-   * Check if a setter method exists
+   * Setters are used, as getters from __get(), to manipulate virtual attributes.
+   * If you have defined a virtual attribute with a getter, a setter method
+   * corresponding will automatically be created to change the cached value.
    *
-   * @param string  the attribute name
-   * @param string  the attribute value
-   * @return mixed
+   * But you may still need to do some special computing before storing it.
+   * This is what setters are about.
+   *
+   * In the model:
+   * <code>
+   * public function setSomething( $value )
+   * {
+   *   return trim( $value );
+   * }
+   * </code>
+   *
+   * Then:
+   * <code>
+   * $myModel->something = ' some text ';
+   * </code>
    */
   public function __set( $key, $value )
   {
-    if ( array_key_exists( $key, $this->arrData ) )
-    {
-      $this->arrData[ $key ] = $value;
-      return;
-    }
-
     $firstLetter = substr( $key, 0, 1 );
-    $rest = substr( $key, 1 );
-    $setter = 'set' . strtoupper( $firstLetter ) . $rest;
+    $rest        = substr( $key, 1 );
+    $setter      = 'set' . strtoupper( $firstLetter ) . $rest;
 
     if ( method_exists( $this, $setter ) )
     {
@@ -559,7 +624,7 @@ abstract class EModel extends Model
         }
       }
 
-      catch( $e )
+      catch ( Exception $e )
       {
           $this->setError( $this->lang[ $attr . '_associated' ], $attr );
       }
