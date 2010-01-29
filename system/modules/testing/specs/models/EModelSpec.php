@@ -124,6 +124,82 @@ class DescribeEModel extends TypolightContext
     $model->save();
     $errors = $model->errorsOn( 'name' );
 
+    $this->spec( $errors[0] )->should->match( '/name is required/' );
+  }
+
+
+  public function itShouldValidateUniquenessOf()
+  {
+    $model = new ExampleEModelValidations();
+    $model->name = 'a test name';
+    $model->save();
+    $errors = $model->errorsOn( 'name' );
+
+    $this->spec( $errors[0] )->should->match( '/"a test name" is already taken/' );
+  }
+
+
+  public function itShouldValidateFormatOf()
+  {
+    $model = new ExampleEModelValidations();
+    $model->phone = 'a wrong phone number';
+    $model->save();
+    $errors = $model->errorsOn( 'phone' );
+
+    $this->spec( $errors[0] )->should->match( '/phone is not formated as expected/' );
+  }
+
+
+  public function itShouldValidateNumericalityOf()
+  {
+    $model = new ExampleEModelValidations();
+    $model->phone = 'a wrong phone number';
+    $model->save();
+    $errors = $model->errorsOn( 'phone' );
+
+    $this->spec( $errors[1] )->should->match( '/phone should be numerical/' );
+  }
+
+
+  public function itShouldValidateMinLengthOf()
+  {
+    $model = new ExampleEModelValidations();
+    $model->name = 'a';
+    $model->save();
+    $errors = $model->errorsOn( 'name' );
+
+    $this->spec( $errors[0] )->should->match( '/name should be at least 2 letters long/' );
+  }
+
+
+  public function itShouldValidateMaxLengthOf()
+  {
+    $model = new ExampleEModelValidations();
+    $model->name = 'aaaaaaaaaaaaaaa';
+    $model->save();
+    $errors = $model->errorsOn( 'name' );
+
+    $this->spec( $errors[0] )->should->match( '/name should be at most 12 letters long/' );
+  }
+
+
+  public function itShouldValidateAssociation()
+  {
+    $model = new ExampleEModelValidations();
+    $model->save();
+    $errors = $model->errorsOn( 'ExampleEModel1' );
+
+    $this->spec( $errors[0] )->should->match( '/ExampleEModelValidations should be associated with ExampleEModel1/' );
+  }
+
+
+  public function itShouldValidateWithCustomValidation()
+  {
+    $model = new ExampleEModelValidations();
+    $model->name = 'bad name';
+    $model->save();
+    $errors = $model->errorsOn( 'name' );
+
     $this->spec( $errors[0] )->should->match( '/bad name iz bad name/' );
   }
 }

@@ -67,10 +67,10 @@ $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
 
 $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ] = array(
   'validates_presence_of'     => '%s is required',
-  'validates_uniqueness_of'   => '%s is already taken',
+  'validates_uniqueness_of'   => '"%s" is already taken',
   'validates_format_of'       => '%s is not formated as expected',
   'validates_numericality_of' => '%s should be numerical',
-  'validates_min_length_of'   => '%s should be longer than %s letters',
-  'validates_max_length_of'   => '%s should be lesser than %s letters',
+  'validates_min_length_of'   => '%s should be at least %s letters long',
+  'validates_max_length_of'   => '%s should be at most %s letters long',
   'validates_associated'      => '%s should be associated with %s',
 );
