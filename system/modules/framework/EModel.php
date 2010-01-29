@@ -561,10 +561,19 @@ abstract class EModel extends Model
 
 
 
-  /*
-   * Validatations
+  /**
+   * Validatations are automatically computed from the validates arrays.
+   * Each attribute can have errors, that can be retrieve with errorsOn( $attr ).
+   * You can customize errors message using $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ '<em>YourModel</em>' ]
+   * with those keys :
+   *  validates_presence_of: <em>attr</em>_required 
+   *  validates_uniqueness_of: <em>attr</em>_uniqueness 
+   *  validates_format_of: <em>attr</em>_format 
+   *  validates_numericality_of: <em>attr</em>_numericality 
+   *  validates_min_length_of: <em>attr</em>_min_length 
+   *  validates_max_length_of: <em>attr</em>_max_length 
+   *  validates_associated: <em>attr</em>_associated 
    *
-   * @return boolean
    */
   public function validate()
   {
@@ -721,6 +730,7 @@ abstract class EModel extends Model
 
   /**
    * Get the errors
+   * Can be called as $model->errors
    * @return array
    */
   public function getErrors()
@@ -732,7 +742,7 @@ abstract class EModel extends Model
 
   /**
    * Get the errors on a particular attribute
-   * @arg string    the attribute
+   * @param string  the attribute
    * @return array  the errors
    */
   public function errorsOn( $attribute )
