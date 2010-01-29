@@ -570,7 +570,7 @@ abstract class EModel extends Model
   {
     foreach ( $this->validates_presence_of as $attr )
     {
-      if ( is_null( $this->attr ) or ( is_string( $this->attr ) and ! strlen( $this->$attr ) ) )
+      if ( is_null( $this->$attr ) or ( is_string( $this->$attr ) and ! strlen( $this->$attr ) ) )
       {
         $message = $this->lang[ $attr . '_required' ];
         if ( ! strlen( $message ) )
