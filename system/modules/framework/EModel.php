@@ -543,7 +543,11 @@ abstract class EModel extends Model
 
 
   /**
-   * Delete many to many associations and record
+   * Remove a record from database.
+   * If the model has a many to many association,
+   * the jointure table will be clean up for this record.
+   *
+   * @return bool success
    */
   public function delete()
   {
@@ -552,7 +556,7 @@ abstract class EModel extends Model
       $this->cleanupAssociation();
     }
 
-    return parent::delete();
+    return !! parent::delete();
   }
 
 
