@@ -467,7 +467,20 @@ abstract class EModel extends Model
 
 
   /**
-   * Save the timestamp
+   * Use this method to save your object in the database.
+   *
+   * Before being save, validations will be tested against the object.
+   * If the object does not validates, false will be return and the
+   * hasError() method will return true.
+   * You can use the virtual attribute "errors" to find the error,
+   * or errorsOn().
+   *
+   * On success, record id will be returned.
+
+   * save() also update the tstamp field, a set the created_at field
+   * if it exists and the object is a new record.
+   *
+   * @return false|integer record id on success or false
    */
   public function save( $blnForceInsert = null )
   {
@@ -483,7 +496,7 @@ abstract class EModel extends Model
 
         if ( $rows > 0 )
         {
-          return $rows;
+          return $this->id;
         }
 
         else
