@@ -86,6 +86,76 @@ class DescribeEModel extends TypolightContext
   }
 
 
+  public function itShouldUpdateAttributes()
+  {
+    $model  = new ExampleEModel1(1);
+    $attrs  = array( 'name' => 'itShouldUpdateAttributes' );
+
+    $this->spec( $model->update_attributes( $attrs ) )->should->be( 1 );
+
+    $db       = Database::getInstance();
+    $record   = $db->execute( 'select * from tl_example_emodel_1 where id = 1' );
+    $record->next();
+
+    $this->spec( $record->name )->should->match( '/itShouldUpdateAttributes/' );
+  }
+
+
+  public function itShouldNotUpdateFilteredAttributes()
+  {
+    $model  = new ExampleEModel1(1);
+    $attrs  = array( 'name' => 'itShouldUpdateAttributes', 'tstamp' => 123 );
+    try
+    {
+      $model->update_attributes( $attrs );
+    }
+
+    catch ( Exception $e ){}
+
+    $db       = Database::getInstance();
+    $record   = $db->execute( 'select * from tl_example_emodel_1 where id = 1' );
+    $record->next();
+
+    $this->spec( $record->tstamp )->shouldNot->be( 123 );
+  }
+
+
+  public function itShouldCreate()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldCreate' );
+    $id     = $model->create( $attrs );
+
+    $this->spec( $id )->shouldNot->beFalse();
+
+    $db       = Database::getInstance();
+    $record   = $db->execute( "select * from tl_example_emodel_1 where id = $id" );
+    $record->next();
+
+    $this->spec( $record->name )->should->match( '/itShouldCreate/' );
+  }
+
+
+  public function itShouldNotCreateWithFilteredAttributes()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldNotCreateWithFilteredAttributes', 'tstamp' => 123 );
+
+    try
+    {
+      $id = $model->create( $attrs );
+    }
+
+    catch ( Exception $e ){}
+
+    $this->spec( $id )->should->beNull();
+
+    $model  = new ExampleEModel1();
+
+    $this->spec( $model->findBy( 'id', $id ) )->should->beFalse();
+  }
+
+
   public function itShouldUpdateTimeStamp()
   {
     $model = new ExampleEModel1(1);
@@ -103,7 +173,7 @@ class DescribeEModel extends TypolightContext
     $model->name  = 'itShouldSetCreatedAtFieldAndReturnIdWhenInsertingNewRecord';
     $id           = $model->save();
 
-    $this->spec( $id )->should->be( 2 );
+    $this->spec( $id )->should->be( 3 );
     $this->spec( $model->created_at )->shouldNot->be( 0 );
   }
 

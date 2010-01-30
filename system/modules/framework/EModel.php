@@ -270,6 +270,13 @@ abstract class EModel extends Model
 
 
   /**
+   * @var array Attributes that are allowed to be set through update_attributes() and create().
+   * If empty, any attribute can be set.
+   **/
+  protected $filtered_attrs = array();
+
+
+  /**
    * @var array Language array
    *
    * This array stock languages informations.
@@ -543,6 +550,53 @@ abstract class EModel extends Model
 
 
   /**
+   * Update the attributes and save the record.
+   * 
+   * @param array (associative) attributes and their value
+   * @return bool|integer the id of the saved record or false if error
+   * @throws Exception if a filtered attribute is passed in the array
+   */
+  public function update_attributes( $attributes )
+  {
+    foreach ( $attributes as $attr => $value )
+    {
+      if ( in_array( $attr, $this->filtered_attrs ) )
+      {
+        throw new Exception( "Filtered attribute set from update_attributes()" );
+      }
+
+      $this->$attr = $value;
+    }
+
+    return $this->save();
+  }
+
+
+
+  /** 
+   * Create from attributes
+   * 
+   * @param array (associative) attributes and their value
+   * @return bool|integer the id of the saved record or false if error
+   * @throws Exception if a filtered attribute is passed in the array
+   */
+  public function create( $attributes )
+  {
+    foreach ( $attributes as $attr => $value )
+    {
+      if ( in_array( $attr, $this->filtered_attrs ) )
+      {
+        throw new Exception( "Filtered attribute set from create()" );
+      }
+    }
+      
+    $this->setData( $attributes );
+    return $this->save();
+  }
+
+
+
+  /**
    * Remove a record from database.
    * If the model has a many to many association,
    * the jointure table will be clean up for this record.
@@ -773,32 +827,6 @@ abstract class EModel extends Model
 
       return false;
     }
-  }
-
-
-
-  /**
-   * Update the attributes and save the record
-   */
-  public function update_attributes( $attributes )
-  {
-    foreach ( $attributes as $attr => $value )
-    {
-      $this->$attr = $value;
-    }
-
-    return $this->save();
-  }
-
-
-
-  /** 
-   * Create from attributes
-   */
-  public function create( $attributes )
-  {
-    $this->setData( $attributes );
-    return $this->save();
   }
 
 
