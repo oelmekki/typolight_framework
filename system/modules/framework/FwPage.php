@@ -99,5 +99,17 @@ class FwPage extends EModel
       return true;
     }
   }
+
+
+  public function getRoot()
+  {
+    $page = $this;
+    while ( $page->pid != 0 )
+    {
+      $page = new FwPage( $page->pid );
+    }
+
+    return $page;
+  }
 }
 
