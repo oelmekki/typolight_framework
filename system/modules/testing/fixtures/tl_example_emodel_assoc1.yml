@@ -1,0 +1,36 @@
+tl_example_emodel_assoc1:
+  record_1:
+    id: '1'
+    pid: '0'
+    tstamp: '1265566569'
+    created_at: '1265566569'
+    name: assoc1-1
+    exampleemodel5_id: '0'
+  record_2:
+    id: '2'
+    pid: '1'
+    tstamp: '1265566605'
+    created_at: '1265566605'
+    name: assoc1-2
+    exampleemodel5_id: '0'
+  record_3:
+    id: '3'
+    pid: '1'
+    tstamp: '1265566619'
+    created_at: '1265566619'
+    name: assoc1-3
+    exampleemodel5_id: '0'
+  record_4:
+    id: '4'
+    pid: '2'
+    tstamp: '1265566636'
+    created_at: '1265566636'
+    name: assoc1-4
+    exampleemodel5_id: '0'
+  record_5:
+    id: '5'
+    pid: '2'
+    tstamp: '1265566647'
+    created_at: '1265566647'
+    name: assoc1-5
+    exampleemodel5_id: '0'

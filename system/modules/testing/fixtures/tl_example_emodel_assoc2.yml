@@ -1,0 +1,13 @@
+tl_example_emodel_assoc2:
+  record_1:
+    id: '1'
+    pid: '2'
+    tstamp: '1265566780'
+    created_at: '1265566780'
+    name: assoc2-1
+  record_2:
+    id: '2'
+    pid: '1'
+    tstamp: '1265566791'
+    created_at: '1265566791'
+    name: assoc2-2

@@ -28,41 +28,16 @@
 
 
 /**
- * Class ExampleEModel1
+ * Class ExampleEModelAssoc2
  *
  * @copyright  
  * @author     
  * @package    Model
  */
 
-class ExampleEModel1 extends EModel
+class ExampleEModelAssoc2 extends EModel
 {
-  protected $strTable = 'tl_example_emodel_1';
-  protected $forGetter = 0;
-  protected $uncachable = array( 'time' );
-  protected $filtered_attrs = array( 'id', 'tstamp', 'created_at' );
-
-  public function getForMe()
-  {
-    $this->forGetter += 1;
-    return $this->forGetter;
-  }
-
-
-  public function getTime()
-  {
-    return time();
-  }
-
-  public function setForMe( $value )
-  {
-    return $this->forGetter = $value . 'abc';
-  }
-
-
-  public function getLanguage()
-  {
-    return $this->lang;
-  }
+  protected $strTable   = 'tl_example_emodel_assoc2';
+  protected $belongsTo  = array( 'ExampleEModelAssoc1' );
+  protected $hasMany    = array( 'ExampleEModelAssoc4' );
 }
-

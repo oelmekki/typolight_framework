@@ -1,0 +1,9 @@
+tl_assoc1_assoc5:
+  record_1:
+    id: '1'
+    exampleemodelassoc1_id: '1'
+    exampleemodelassoc5_id: '1'
+  record_2:
+    id: '2'
+    exampleemodelassoc1_id: '1'
+    exampleemodelassoc5_id: '2'

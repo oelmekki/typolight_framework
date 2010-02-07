@@ -47,6 +47,8 @@ abstract class EModel extends Model
    * The model name in that field must be lowercase.
    * If it does not exist, the pid field will used instead.
    *
+   * Takes the same parameters as getAll().
+   * 
    * Example for a Comment class:
    * <code>
    * protected $belongsTo = array( 'Post', 'NewsItem' );
@@ -70,6 +72,8 @@ abstract class EModel extends Model
    *
    * This association is to be used one there is only one child of this class.
    *
+   * Takes the same parameters as getAll().
+   * 
    * Example for a Post class:
    * <code>
    * protected $hasOne = array( 'Author' );
@@ -92,6 +96,8 @@ abstract class EModel extends Model
    *
    * Works like $hasOne, except it implies multiple children for a same class.
    *
+   * Takes the same parameters as getAll().
+   * 
    * Example for a Post class:
    * <code>
    * protected $hasMany = array( 'Comment' );
@@ -114,6 +120,8 @@ abstract class EModel extends Model
    *
    * The result will be found put delegating the call to an other class from $hasOne or $belongsTo
    *
+   * Takes the same parameters as getAll().
+   * 
    * Example for a Comment class:
    * <code>
    * protected $hasThrough = array( 'Theme' => 'Post' );
@@ -137,6 +145,8 @@ abstract class EModel extends Model
    *
    * The jointure table must have two fields formated : <em>modelname</em>_id .
    * The model names in those fields must be lowercase.
+   *
+   * Takes the same parameters as getAll().
    *
    * Example for a Post class:
    * <code>
@@ -303,7 +313,7 @@ abstract class EModel extends Model
 
   const FIND_FIRST  = 'find_first_by_';
   const FIND_ALL    = 'find_all_by_';
-  const FIND_DELIM  = '(_and_|_or_|_and_not_)';
+  const FIND_DELIM  = '(_and_not_|_and_|_or_)';
   const FIND_ORDER  = '_order_by_';
 
 
@@ -833,7 +843,28 @@ abstract class EModel extends Model
 
   /**
    * Find all records
-   * @param string
+   *
+   * Return an array of instantiated models.
+   *
+   * Optional parameters let you define clauses :
+   * - The order clause should be the sorting field and optionaly  "desc"
+   * - The where clause is formed by an array with the string clause at
+   *   first with optional '?' placeholders, and the values for those place
+   *   holders as other items. Placeholder values will be escaped.
+   * - limit is an integer which limit the number of returned objects
+   *
+   * If you don't need any clause, you can simply use : $model->all
+   *
+   * Examples:
+   * <code>
+   * $carbon  = new Post();
+   * $posts   = $carbon->all;
+   * $latests = $carbon->getAll( 'created_at desc', array( 'start < ? and stop > ? and published = 1', time(), time() ), 5 );
+   * </code>
+   *
+   * @param string order clause
+   * @param array|null condition clause
+   * @param integer|null limit clause
    * @return array
    */
   public function getAll( $order = "id", $where = null, $limit = null )
@@ -871,6 +902,12 @@ abstract class EModel extends Model
 
   /**
    * Get the count of items
+   *
+   * Get the count of rows for this table.
+   * Accept a condition as parameter, formated like the getAll() one.
+   * 
+   * @param array|null condition clause
+   * @return integer
    */
   public function getCount( $where = null )
   {
@@ -897,8 +934,13 @@ abstract class EModel extends Model
 
   /**
    * Get all id's, so we can use in_array
-   * @param mixed     collection : an array of models to get the id from.
-   * @return mixed    the list of id's
+   *
+   * Optionaly, you can pass an array of models as parameter.
+   * Id from items in the array will be returned, with no regard
+   * of the current model.
+
+   * @param array|null collection : an array of models to get the id from.
+   * @return array the list of id's
    */
   public function ids( $collection = null )
   {
@@ -916,7 +958,14 @@ abstract class EModel extends Model
 
 
   /**
-   * set the current object to the first record
+   * Set the current object to the first record
+   *
+   * Optionaly, you can pass an order clause and a condition
+   * clause, just like with getAll().
+   * 
+   * @param string|null order clause
+   * @param array|null condition clause
+   * @return boolean return false if there are no records
    */
   public function first( $order = 'id', $where = null )
   {
@@ -948,7 +997,14 @@ abstract class EModel extends Model
 
 
   /**
-   * set the current object to the last record
+   * Set the current object to the last record
+   *
+   * Optionaly, you can pass an order clause and a condition
+   * clause, just like with getAll().
+   * 
+   * @param string|null order clause
+   * @param array|null condition clause
+   * @return boolean return false if there are no records
    */
   public function last( $order = 'id', $where = null )
   {
@@ -980,8 +1036,17 @@ abstract class EModel extends Model
 
 
   /**
-   * act as setData but also set protected
-   * variables as with findBy
+   * Act as setData from Model, but also set protected
+   * variables as with findBy.
+   *
+   * This let you set a object from an array.
+   * Example:
+   *
+   * <code>
+   * $post        = new Post();
+   * $post->found = $row;
+   * </code>
+   *
    * @param mixed
    * @return mixed
    */
@@ -997,15 +1062,45 @@ abstract class EModel extends Model
       throw new Exception( 'Array required to set data' );
     }
 
-    $this->blnRecordExists = true;
-    $this->strRefField = 'id';
-    $this->varRefId = $varData[ 'id' ];
-    $this->arrData = $varData;
+    $this->blnRecordExists  = true;
+    $this->strRefField      = 'id';
+    $this->varRefId         = $varData[ 'id' ];
+    $this->arrData          = $varData;
   }
 
 
 
   /**
+   * Additionnaly to managing associations, magic method
+   * __call() also handle dynamic finders.
+   *
+   * Dynamic finders let you express sql finders as method
+   * name. Variables for conditions are passed as parameter.
+   *
+   * A find_first statement set the current object to the find
+   * one or return false, just like first().
+   *
+   * A find_all statement return an array, just like getAll().
+   *
+   * You can additionnaly use _and_, _and_not_ and _or_.
+   *
+   * Finaly, you can use _order_by_.
+   *
+   * Example:
+   * <code>
+   * $post    = new Post();
+   * $member  = new Member();
+   * $posts   = $post->find_all_by_published( 1 );
+   * $howtos  = $post->find_all_by_published_and_theme( 1, 'howto' );
+   * $socials = $post->find_all_by_theme_or_theme( 'politic', 'science' );
+   * $actives = $member->find_all_by_login_and_not_banned( 1, 1 );
+   * $news    = $post->find_all_by_published_order_by_created_at_desc( 1 );
+   * $success = $post->find_first_by_id( 12 );
+   * $success = $post->find_first_by_id_and_published( 12, 1 );
+   * $success = $post->find_first_by_id_and_not_published( 12, 1 );
+   * $success = $post->find_first_by_published_order_by_id_desc( 1 );
+   * </code>
+   * 
    * dynamic finders and associations
    */
   public function __call( $stmt, $params )
@@ -1053,6 +1148,104 @@ abstract class EModel extends Model
 
 
   /**
+   * Determine is the model has the given field
+   * @param string the field to test
+   * @return boolean
+   */
+  public function hasField( $field )
+  {
+    return $this->Database->fieldExists( $field, $this->strTable );
+  }
+
+
+
+  /**
+   * Convert model to array for json
+   * If recursive is true, associated EModel are converted recursively.
+   * Non-EModel object attributes are ignored.
+   *
+   * @param boolean recursivity
+   * @return array the json ready array
+   */
+  public function toJson( $recursive = false )
+  {
+    $json = array();
+    foreach ( $this->jsonable as $key )
+    {
+      $value = $this->$key;
+
+      if ( $recursive )
+      {
+        if ( $recursive && ( in_array( $key, $this->belongsTo ) || in_array( $key, $this->hasOne ) ) )
+        {
+          $json[ $key ] = $this->$key()->toJson();
+          continue;
+        }
+
+        foreach ( $this->hasThrough as $through )
+        {
+          if ( $key == $through[0] )
+          {
+            $json[ $key ] = $this->key()->toJson();
+            $continue = true;
+            break;
+          }
+        }
+
+        if ( $continue ) continue;
+      }
+
+      if ( @unserialize( $value ) !== false )
+      {
+        $json[ $key ] = unserialize( $value );
+        continue;
+      }
+
+      $json[ $key ] = $value;
+    }
+
+    if ( $recursive )
+    {
+      foreach ( $this->hasMany as $association )
+      {
+        $models = $this->$association();
+        $json[ $association ] = array();
+
+        foreach ( $models as $model )
+        {
+          $json[ $association ][] = $model->toJson();
+        }
+      }
+
+      foreach ( $this->manyToMany as $association )
+      {
+        $models = $this->$association();
+        $json[ $association ] = array();
+
+        foreach ( $models as $model )
+        {
+          $json[ $association ][] = $model->toJson();
+        }
+      }
+    }
+
+    return $json;
+  }
+
+
+
+  /**
+   * Flush the cash
+   * All cached results are dropped
+   */
+  public function flushCache()
+  {
+    $this->arrCache = array();
+  }
+
+
+
+  /*
    * Find parent - treeAssoc relationship
    * @return obj
    */
@@ -1073,7 +1266,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find children - treeAssoc relationship
    * @arg   mixed    the where clause array
    * @return mixed
@@ -1114,8 +1307,9 @@ abstract class EModel extends Model
 
   /**
    * Say if current object is child of given object - treeAssoc relationship
-   * @arg     mixed    the relative
-   * @return  mixed
+   *
+   * @param EModel the relative to test
+   * @return boolean the result
    **/
   public function isChildOf( $relative )
   {
@@ -1125,6 +1319,7 @@ abstract class EModel extends Model
     }
 
     $children = $relative->descendants;
+    array_shift( $children );
     $ids      = $relative->ids( $children );
 
     return in_array( $this->id, $ids );
@@ -1132,6 +1327,12 @@ abstract class EModel extends Model
 
 
 
+  /**
+   * Say if current object is parent of given object - treeAssoc relationship
+   *
+   * @param EModel the relative to test
+   * @return boolean the result
+   **/
   public function isParentOf( $relative )
   {
     if ( ! $this->treeAssoc )
@@ -1140,6 +1341,7 @@ abstract class EModel extends Model
     }
 
     $children = $this->descendants;
+    array_shift( $children );
     $ids      = $this->ids( $children );
 
     return in_array( $relative->id, $ids );
@@ -1147,6 +1349,12 @@ abstract class EModel extends Model
 
 
 
+  /**
+   * Get all descendants of current object, including itself - treeAssoc relationship
+   *
+   * @param EModel the relative to test
+   * @return boolean the result
+   **/
   public function getDescendants()
   {
     if ( ! $this->treeAssoc )
@@ -1165,7 +1373,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find owner - belongsTo relationship
    * @return obj
    */
@@ -1189,7 +1397,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find child - hasOne relationship
    * @return obj
    */
@@ -1201,7 +1409,14 @@ abstract class EModel extends Model
     }
 
     $child = new $class();
-    $find = "find_first_by_" . strtolower( get_class( $this ) ) . "_id";
+    $child_field = strtolower( $class ) . '_pid';
+
+    if ( ! $child->hasField( $child_field ) )
+    {
+      $child_field = 'pid';
+    }
+
+    $find = "find_first_by_" . $child_field;
     $child->$find( $this->id );
     $this->arrCache[ 'associations' ][ $class ] = $child;
     return $child;
@@ -1209,7 +1424,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find children - hasMany relationship
    * @arg   string      the related class name
    * @arg   mixed       the where clause array
@@ -1255,7 +1470,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find a related through an other
    * @return mixed
    */
@@ -1275,7 +1490,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Find a related - manyToMany relationship
    * @return mixed
    * TODO : check the got many flag ( no need to query db any longer if it is false )
@@ -1399,7 +1614,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Sort many to many results ascendingly
    */
   protected function manySortAsc( $first, $second )
@@ -1424,7 +1639,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Sort many to many results descendingly
    */
   protected function manySortDesc( $first, $second )
@@ -1449,7 +1664,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Set a related - manyToMany relationship
    * @param string
    * @param mixed
@@ -1461,12 +1676,15 @@ abstract class EModel extends Model
     if ( array_key_exists( $associated, $this->manyToMany ) )
     {
       $table = $this->manyToMany[ $associated ];
-      $this->Database->prepare( sprintf( "delete from `%s` where `%s` = ?", $table, get_class( $this ) ) )
+      $hereField  = strtolower( get_class( $this ) ) . '_id';
+      $thereField = strtolower( $associated ) . '_id';
+
+      $this->Database->prepare( sprintf( "delete from `%s` where `%s` = ?", $table, $hereField ) )
                      ->execute( $this->id );
 
       foreach ( $ids as $id )
       {
-        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, get_class( $this ), $associated ) )
+        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, $hereField, $thereField ) )
                        ->execute( $this->id, (int) $id );
       }
     }
@@ -1474,7 +1692,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Add a related - manyToMany relationship
    * @param string
    * @param mixed
@@ -1485,13 +1703,16 @@ abstract class EModel extends Model
   {
     if ( array_key_exists( $associated, $this->manyToMany ) )
     {
-      $table = $this->manyToMany[ $associated ];
-      $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ? and `%s` = ?", $table, get_class( $this ), $associated ) )
+      $table      = $this->manyToMany[ $associated ];
+      $hereField  = strtolower( get_class( $this ) ) . '_id';
+      $thereField = strtolower( $associated ) . '_id';
+
+      $record = $this->Database->prepare( sprintf( "select * from `%s` where `%s` = ? and `%s` = ?", $table, $hereField, $thereField ) )
                                ->execute( $this->id, $id );
 
       if ( ! $record->next() and is_numeric( $id ) )
       {
-        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, get_class( $this ), $associated ) )
+        $this->Database->prepare( sprintf( "insert into `%s`( `%s`, `%s` ) values( ?, ? )", $table, $hereField, $thereField ) )
                        ->execute( $this->id, $id );
 
         return true;
@@ -1503,7 +1724,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * Remove a related - manyToMany relationship
    * @param string
    * @param mixed
@@ -1532,7 +1753,7 @@ abstract class EModel extends Model
 
 
 
-  /**
+  /*
    * dynamic finder
    */
   protected function findDynamic( $stmt, $params )
@@ -1623,101 +1844,6 @@ abstract class EModel extends Model
 
       return $all ;
     }
-  }
-
-
-
-  /**
-   * Determine is the model has the given field
-   * @param string
-   * @return boolean
-   */
-  public function hasField( $field )
-  {
-    return $this->Database->fieldExists( $field, $this->strTable );
-  }
-
-
-
-  /**
-   * Convert model to array for json
-   * If recursive is true, associated EModel are converted recursively.
-   * Non-EModel object attributes are ignored.
-   * @return mixed
-   */
-  public function toJson( $recursive = false )
-  {
-    $json = array();
-    foreach ( $this->jsonable as $key )
-    {
-      $value = $this->$key;
-
-      if ( $recursive )
-      {
-        if ( $recursive && ( in_array( $key, $this->belongsTo ) || in_array( $key, $this->hasOne ) ) )
-        {
-          $json[ $key ] = $this->$key()->toJson();
-          continue;
-        }
-
-        foreach ( $this->hasThrough as $through )
-        {
-          if ( $key == $through[0] )
-          {
-            $json[ $key ] = $this->key()->toJson();
-            $continue = true;
-            break;
-          }
-        }
-
-        if ( $continue ) continue;
-      }
-
-      if ( @unserialize( $value ) !== false )
-      {
-        $json[ $key ] = unserialize( $value );
-        continue;
-      }
-
-      $json[ $key ] = $value;
-    }
-
-    if ( $recursive )
-    {
-      foreach ( $this->hasMany as $association )
-      {
-        $models = $this->$association();
-        $json[ $association ] = array();
-
-        foreach ( $models as $model )
-        {
-          $json[ $association ][] = $model->toJson();
-        }
-      }
-
-      foreach ( $this->manyToMany as $association )
-      {
-        $models = $this->$association();
-        $json[ $association ] = array();
-
-        foreach ( $models as $model )
-        {
-          $json[ $association ][] = $model->toJson();
-        }
-      }
-    }
-
-    return $json;
-  }
-
-
-
-  /**
-   * Flush the cash
-   */
-  public function flushCache()
-  {
-    $this->arrCache = array();
   }
 
 

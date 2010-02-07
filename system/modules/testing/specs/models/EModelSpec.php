@@ -178,6 +178,181 @@ class DescribeEModel extends TypolightContext
   }
 
 
+  public function itShouldGetAllRecords()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords' );
+
+    $model->create( $attrs );
+    $models = $model->all;
+
+    $this->spec( count( $models ) )->should->be( 2 );
+  }
+
+
+  public function itShouldGetAllRecordsWithCondition()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords2' );
+    $model->create( $attrs );
+
+    $models = $model->getAll( 'id', array( 'id > ?', 1 ) );
+    $this->spec( count( $models ) )->should->be( 2 );
+  }
+
+
+  public function itShouldGetAllRecordsSorted()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords2' );
+    $model->create( $attrs );
+    
+    $models = $model->getAll( 'id desc' );
+    $this->spec( $models[0]->id )->should->be( 8 );
+    $this->spec( $models[1]->id )->should->be( 7 );
+    $this->spec( $models[2]->id )->should->be( 1 );
+  }
+
+
+  public function itShouldGetAllRecordsLimited()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllRecords2' );
+    $model->create( $attrs );
+    
+    $models = $model->getAll( 'id desc', null, 1 );
+    $this->spec( count( $models ) )->should->be( 1 );
+  }
+
+
+  public function itShouldGetAllByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByDynamic' );
+    $model->create( $attrs );
+
+    $models_all_by = $model->find_all_by_name( 'itShouldGetAllByDynamic' );
+    $this->spec( count( $models_all_by ) )->should->be( 2 );
+  }
+
+
+  public function itShouldGetAllByAndByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByAndByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByAndByDynamic' );
+    $model->create( $attrs );
+
+    $models_all_by_and = $model->find_all_by_name_and_id( 'itShouldGetAllByAndByDynamic', 14 );
+    $this->spec( $models_all_by_and[ 0 ]->id  )->should->be( 14 );
+  }
+
+
+  public function itShouldGetAllByAndNotByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByAndNotByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllByAndNotByDynamic' );
+    $model->create( $attrs );
+    
+    $models_all_by_and_not  = $model->find_all_by_name_and_not_id( 'itShouldGetAllByAndNotByDynamic', 16 );
+    $this->spec( count( $models_all_by_and_not ) )->should->be( 1 );
+    $this->spec( $models_all_by_and_not[ 0 ]->id  )->should->be( 15 );
+  }
+
+
+  public function itShouldGetAllOrderByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllOrderByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetAllOrderByDynamic' );
+    $model->create( $attrs );
+    
+    $models_all_by_order_by = $model->find_all_by_name_order_by_id_desc( 'itShouldGetAllOrderByDynamic' );
+    $this->spec( count( $models_all_by_order_by ) )->should->be( 2 );
+    $this->spec( $models_all_by_order_by[ 0 ]->id  )->should->be( 18 );
+    $this->spec( $models_all_by_order_by[ 1 ]->id  )->should->be( 17 );
+  }
+
+
+  public function itShouldGetFirstByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByDynamic' );
+    $model->create( $attrs );
+    
+    $success = $model->find_first_by_name( 'itShouldGetFirstByDynamic' );
+    $this->spec( $success )->should->beTrue();
+    $this->spec( $model->id )->should->be( 19 );
+  }
+
+
+  public function itShouldGetFirstByAndByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByAndByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByAndByDynamic' );
+    $model->create( $attrs );
+
+    $success = $model->find_first_by_name_and_id( 'itShouldGetFirstByAndByDynamic', 22 );
+    $this->spec( $success )->should->beTrue();
+    $this->spec( $model->id )->should->be( 22 );
+  }
+
+
+  public function itShouldGetFirstByAndNotByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByAndNotByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByAndNotByDynamic' );
+    $model->create( $attrs );
+
+    $success = $model->find_first_by_name_and_not_id( 'itShouldGetFirstByAndNotByDynamic', 23 );
+    $this->spec( $success )->should->beTrue();
+    $this->spec( $model->id )->should->be( 24 );
+  }
+
+
+  public function itShouldGetFirstByOrderByDynamic()
+  {
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByOrderByDynamic' );
+    $model->create( $attrs );
+    $model  = new ExampleEModel1();
+    $attrs  = array( 'name' => 'itShouldGetFirstByOrderByDynamic' );
+    $model->create( $attrs );
+
+    $success = $model->find_first_by_name_order_by_id_desc( 'itShouldGetFirstByOrderByDynamic' );
+    $this->spec( $success )->should->beTrue();
+    $this->spec( $model->id )->should->be( 26 );
+  }
+
+
   public function itShouldDeleteRecord()
   {
     $model = new ExampleEModel1(1);
@@ -272,4 +447,105 @@ class DescribeEModel extends TypolightContext
 
     $this->spec( $errors[0] )->should->match( '/bad name iz bad name/' );
   }
+
+
+  public function itShouldCheckIfTableHasField()
+  {
+    $model = new ExampleEModel1();
+    $this->spec( $model->hasField( 'name' ) )->should->beTrue();
+    $this->spec( $model->hasField( 'dontexist' ) )->should->beFalse();
+  }
+
+
+  public function itShouldFlushCache()
+  {
+    $model = new ExampleEModel1( 1 );
+    $this->spec( $model->name )->should->match( '/example1-1/' );
+    $this->spec( $model->forMe )->should->be( 1 );
+    $this->spec( $model->forMe )->should->be( 1 );
+    $model->flushCache();
+    $this->spec( $model->forMe )->should->be( 2 );
+    $this->spec( $model->name )->should->match( '/example1-1/' );
+  }
+
+
+  public function itShouldGetChildHasOne()
+  {
+    $model = new ExampleEModelAssoc1( 1 );
+    $child = $model->ExampleEModelAssoc2();
+
+    $this->spec( $child->id )->should->be( 2 );
+  }
+
+
+  public function itShouldGetChildrenHasMany()
+  {
+    $model    = new ExampleEModelAssoc1( 1 );
+    $children = $model->ExampleEModelAssoc3();
+
+    $this->spec( count( $children ) )->should->be( 2 );
+    $this->spec( $children[0]->id )->should->be( 1 );
+    $this->spec( $children[1]->id )->should->be( 2 );
+  }
+
+
+  public function itShouldGetChildrenThrough()
+  {
+    $model    = new ExampleEModelAssoc1( 1 );
+    $children = $model->ExampleEModelAssoc4();
+
+    $this->spec( count( $children ) )->should->be( 2 );
+    $this->spec( $children[0]->id )->should->be( 1 );
+    $this->spec( $children[1]->id )->should->be( 2 );
+  }
+
+
+  public function itShouldGetParentBelongsTo()
+  {
+    $model = new ExampleEModelAssoc2( 1 );
+    $child = $model->ExampleEModelAssoc1();
+
+    $this->spec( $child->id )->should->be( 2 );
+  }
+
+  public function itShouldGetRelatedManyToMany()
+  {
+    $model   = new ExampleEModelAssoc1( 1 );
+    $related = $model->ExampleEModelAssoc5();
+
+    $this->spec( count( $related ) )->should->be( 2 );
+    $this->spec( $related[0]->id )->should->be( 1 );
+    $this->spec( $related[1]->id )->should->be( 2 );
+  }
+
+
+  public function itShouldGetTreeFromRecord()
+  {
+    $model    = new ExampleEModelAssoc1( 1 );
+    $children = $model->descendants;
+
+    $this->spec( count( $children ) )->should->be( 5 );
+  }
+
+
+  public function itShouldTestPaternity()
+  {
+    $model1 = new ExampleEModelAssoc1( 1 );
+    $model2 = new ExampleEModelAssoc1( 2 );
+
+    $this->spec( $model1->isParentOf( $model2 ) )->should->beTrue();
+    $this->spec( $model1->isParentOf( $model1 ) )->should->beFalse();
+  }
+
+
+  public function itShouldTestChildhood()
+  {
+    $model1 = new ExampleEModelAssoc1( 1 );
+    $model2 = new ExampleEModelAssoc1( 2 );
+
+    $this->spec( $model2->isChildOf( $model1 ) )->should->beTrue();
+    $this->spec( $model2->isChildOf( $model2 ) )->should->beFalse();
+  }
 }
+
+
