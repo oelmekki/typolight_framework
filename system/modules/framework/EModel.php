@@ -33,7 +33,7 @@
  * Enhence the basic Model class
  * @copyright  Olivier El Mekki 2006
  * @author     Olivier El Mekki 
- * @package    Model
+ * @package    Framework
  */
 abstract class EModel extends Model
 {
