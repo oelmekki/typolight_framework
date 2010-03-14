@@ -28,13 +28,13 @@
 
 
 /**
- * Class RoutedModule 
+ * Class FrontendController 
  *
  * @copyright  Olivier El Mekki, 2009 
  * @author     Olivier El Mekki 
  * @package    Controller
  */
-abstract class RoutedModule extends Module
+abstract class FrontendController extends Module
 {
   protected $templateClass;
   protected $controller;
@@ -46,7 +46,6 @@ abstract class RoutedModule extends Module
   protected $arrCache = array();
   protected $uncachable = array();
   protected $arrActions = array();
-  protected $helper;
 
   public function __construct( Database_Result $objModule, $strColumn = 'main', $templateClass = 'FrontendTemplate' )
   {
@@ -228,61 +227,6 @@ abstract class RoutedModule extends Module
 
 
   /**
-   * find out if a param exists and has the good type
-   * @param string
-   * @param string
-   * @param string
-   * @return boolean
-   */
-  protected function hasParam( $param, $type = 'string', $method = 'get' )
-  {
-
-    switch ( $type )
-    {
-    case "string":
-      if ( ! strlen( $this->Input->$method( $param ) ) )
-      {
-        return false;
-      }
-      return true;
-      break;
-
-    case "int":
-    case "integer":
-      if ( ! ( strlen( $this->Input->$method( $param ) ) and is_numeric( $this->Input->$method( $param ) ) ) )
-      {
-        return false;
-      }
-      return true;
-      break;
-
-    case "array":
-      if ( ! is_array( $this->Input->$method( $param ) ) )
-      {
-        return false;
-      }
-      return true;
-      break;
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * Convenient method to check if id is present
-   * @param string
-   * @return boolean
-   */
-  protected function hasId( $method = 'get' )
-  {
-    return $this->hasParam( 'id', 'integer', $method );
-  }
-
-
-
-  /**
    * Override redirection not to kill the testing suite
    */
   protected function redirect( $strLocation, $intStatus = 303 )
@@ -296,37 +240,6 @@ abstract class RoutedModule extends Module
     {
       parent::redirect( $strLocation, $intStatus );
     }
-  }
-
-  /**
-   * Retrieve a route from its name and redirect to it
-   * @param string
-   * @param integer
-   */
-  public function redirectTo( $name, $params = array(), $anchor='' )
-  {
-    if ( strlen( $url = Route::compose( $name, $params ) ) )
-    {
-      if ( strlen( $anchor ) )
-      {
-        $url .= '#' . $anchor;
-      }
-
-      $this->redirect( $url );
-      return true;
-    }
-
-    throw new Exception( 'No route match the name ' . $name );
-  }
-
-
-
-  /**
-   * Convenient method to redirect to the default route
-   */
-  protected function redirectInvalid()
-  {
-    $this->redirect( $this->index() );
   }
 
 
@@ -391,103 +304,22 @@ abstract class RoutedModule extends Module
 
 
   /**
-   * Helper to do some pagination
-   *
-   * @param   mixed     collection of objects on which pagination will be done or object on which to use getALl()
-   * @param   integer   number of items per page
-   * @return  mixed     the extract of the collection
-   */
-  protected function paginate( $collection, $perPage, $page_index = null, $order = null, $where = null )
-  {
-    //find page to use
-    $page = $this->Input->get( 'paginate' );
-    if ( ! ( strlen( $page ) and is_numeric( $page ) ) )
-    {
-      $page = 1;
-    }
-
-    if ( $page_index )
-    {
-      if ( $page_index == 'last' )
-      {
-        $page = $page_count;
-      }
-
-      elseif ( is_numeric( $page_index ) )
-      {
-        $page = $page_index;
-      }
-    }
-
-
-    $start = ( $page - 1 ) * $perPage;
-
-
-
-    if ( is_object( $collection ) )
-    {
-      $item_count = $collection->count;
-      if ( $start > $item_count )
-      {
-        $start = 0;
-      }
-
-      if ( ! $order )
-      {
-        $order = 'id';
-      }
-
-      $collection = $collection->getAll( $order, $where, $start . ', ' . $perPage );
-      $item_count = count( $collection );
-      $selected   = $collection;
-    }
-
-    else
-    {
-      $item_count = count( $collection );
-      if ( $start > $item_count )
-      {
-        $start = 0;
-      }
-
-      $selected = array_slice( $collection, $start, $perPage );
-    }
-
-    $page_count = ceil( $item_count / $perPage );
-
-    $this->preparePagination( $page_count, $page );
-
-
-    return $selected;
-  }
-
-
-
-  /**
    * Prepare template for pagination
-   * Extracted to let you use your own pagination function
+   * Pagination should have been executed on model
    *
    * @arg integer       the total number of pages
    * @arg integer       the current page number
    */
-  protected function preparePagination( $page_count, $page )
+  protected function preparePagination( $model )
   {
-    $pagename   = preg_replace( '/(\&|\?)paginate=\d+/', '',  $this->Environment->request);
+    $page_count = $model->paginate_page_count;
+    $page       = $model->paginate_page;
+    $links      = array();
 
-    $links = array();
     for ( $i = 1; $i <= $page_count; $i++ )
     {
-      if ( strpos( $pagename, '?' ) !== false )
-      {
-        $links[ $i ] = $pagename . '&paginate=' . $i;
-      }
-
-      else
-      {
-        $links[ $i ] = $pagename . '?paginate=' . $i;
-      }
+      $links[ $i ] = $this->addToUrl( "paginate=$i" );
     }
-
 
     $pagination = new FrontendTemplate( 'mod_framework_pagination' );
     $pagination->links      = $links;
@@ -497,36 +329,4 @@ abstract class RoutedModule extends Module
 
     $this->pagination = $pagination->parse();
   }
-
-
-  /**
-   * Find helpers for this controller
-   */
-  protected function getHelper()
-  {
-    $helper     = null;
-    $helperName = get_class( $this ) . 'Helper';
-
-    if ( ! class_exists( $helperName, false ) )
-    {
-      foreach ( glob( TL_ROOT . '/system/modules/*' ) as $module )
-      {
-        if ( file_exists( $module . '/' . $helperName . '.php' ) )
-        {
-          require( $module . '/' . $helperName . '.php' );
-          $helper = new $helperName();
-          break;
-        }
-      }
-
-      if ( ! $helper )
-      {
-        $helper = new FwHelper();
-      }
-    }
-
-    $this->helper = $helper;
-  }
 }
-
-

@@ -310,6 +310,8 @@ abstract class EModel extends Model
   protected $_order_clause;
   protected $arrErrors = array();
   protected $arrCache  = array();
+  public    $paginate_page;
+  public    $paginate_page_count;
 
   const FIND_FIRST  = 'find_first_by_';
   const FIND_ALL    = 'find_all_by_';
@@ -896,6 +898,34 @@ abstract class EModel extends Model
     }
 
     return $all;
+  }
+
+
+
+  /**
+   * Get a paginated collection
+   *
+   * If you want to do some pagination, this method is for you.
+   * Simply give an order and a where clause, just like getAll()
+   * and say how many item per page you want, and optionnaly on
+   * which page we are.
+   *
+   * You can then use, for instance, FrontendController#preparePagination()
+   * To create the necessary html.
+   *
+   * @param string order clause
+   * @param array|null condition clause
+   * @param integer number of items per page
+   * @param integer starting page
+   * @return array
+   **/
+  public function getPaginate( $order = "id", $where = null, $perPage = 10, $startPage = 0 )
+  {
+    $collection = $this->getAll( $order, $where, $perPage * $startPage . ',' . $perPage );
+    $this->paginate_page        = $startPage;
+    $this->paginate_page_count  = ceil( $this->getCount( $where ) / $perPage );
+
+    return $collection;
   }
 
 
@@ -1864,5 +1894,7 @@ abstract class EModel extends Model
       }
     }
   }
+
+
 }
 
