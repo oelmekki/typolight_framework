@@ -35,7 +35,7 @@
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Controller
  */
-class ModuleRoutedNav extends RoutedModule
+class ModuleRoutedNav extends FrontendController
 {
   protected $controller = 'framework_routed_nav';
 
