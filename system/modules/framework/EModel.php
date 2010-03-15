@@ -922,7 +922,7 @@ abstract class EModel extends Model
   public function getPaginate( $order = "id", $where = null, $perPage = 10, $startPage = 0 )
   {
     $collection = $this->getAll( $order, $where, $perPage * $startPage . ',' . $perPage );
-    $this->paginate_page        = $startPage;
+    $this->paginate_page        = $startPage + 1;
     $this->paginate_page_count  = ceil( $this->getCount( $where ) / $perPage );
 
     return $collection;
