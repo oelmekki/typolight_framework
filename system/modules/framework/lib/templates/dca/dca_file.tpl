@@ -121,7 +121,7 @@ class <?php echo $this->table ?> extends Backend
   {
     if ( ! strlen( $this->activeRecord->created_at ) )
     {
-      $this->Database->prepare( 'update <?php echo $this->table ?> set createad_at = ? where id = ?' )
+      $this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
                      ->execute( time(), $dca->id );
     }
   }
