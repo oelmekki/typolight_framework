@@ -137,6 +137,10 @@ abstract class BackendController extends BackendModule
   {
     $this->action = 'index';
     $action = $this->Input->get( 'act' );
+    if ( ! strlen( $action ) and strlen( $action = $this->Input->post( 'act' ) ) )
+    {
+      $action = array_search( $action, $this->lang );
+    }
 
 
     if ( strlen( $action ) and method_exists( $this, $action ) )
