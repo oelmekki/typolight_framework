@@ -307,10 +307,16 @@ abstract class FrontendController extends Module
    * Prepare template for pagination
    * Pagination should have been executed on model
    *
-   * @arg integer       the total number of pages
-   * @arg integer       the current page number
+   * If $route is given, the pagination links will
+   * be created with Route::compose(), using $routeParameters.
+   *
+   * If not, they wil be created with System#addToUrl()
+   *
+   * @arg EModel        the paginated model
+   * @arg string        the route name
+   * @arg array         the route parameters
    */
-  protected function preparePagination( $model )
+  protected function preparePagination( $model, $route = null, $routeParams = array() )
   {
     $page_count = $model->paginate_page_count;
     $page       = $model->paginate_page;
@@ -318,7 +324,15 @@ abstract class FrontendController extends Module
 
     for ( $i = 1; $i <= $page_count; $i++ )
     {
-      $links[ $i ] = $this->addToUrl( "paginate=$i" );
+      if ( $route )
+      {
+        $links[ $i ] = Route::compose( $route, array_merge( $routeParams, array( 'page' => $i ) ) );
+      }
+
+      else
+      {
+        $links[ $i ] = $this->addToUrl( "page=$i" );
+      }
     }
 
     $pagination = new FrontendTemplate( 'mod_framework_pagination' );
