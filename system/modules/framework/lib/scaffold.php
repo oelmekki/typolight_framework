@@ -228,7 +228,7 @@ class Scaffold
       $fields .= sprintf( $sqlFields[ $type ], $field ) . "\n";
     }
 
-    $table = "\n\n-- --------------------------------------------------------\n\n--\n-- Table `%s`\n--\n\nCREATE TABLE `%s` (\n  `id` int(10) unsigned NOT NULL auto_increment,\n  `pid` int(10) unsigned NOT NULL default '0',\n  `sorting` int(10) unsigned NOT NULL default '0',\n  `tstamp` int(10) unsigned NOT NULL default '0',\n%s  PRIMARY KEY  (`id`),\n  KEY `pid` (`pid`),\n) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+    $table = "\n\n-- --------------------------------------------------------\n\n--\n-- Table `%s`\n--\n\nCREATE TABLE `%s` (\n  `id` int(10) unsigned NOT NULL auto_increment,\n  `pid` int(10) unsigned NOT NULL default '0',\n  `sorting` int(10) unsigned NOT NULL default '0',\n  `tstamp` int(10) unsigned NOT NULL default '0',\n  `created_at` int(10) unsigned NOT NULL default '0',\n%s  PRIMARY KEY  (`id`),\n  KEY `pid` (`pid`),\n) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
     $table = sprintf( $table, $this->table, $this->table, $fields );
 
