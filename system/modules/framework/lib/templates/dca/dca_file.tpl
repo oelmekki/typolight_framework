@@ -119,7 +119,12 @@ class <?php echo $this->table ?> extends Backend
 {
   public function setCreatedAt( $dca )
   {
-    if ( ! strlen( $this->activeRecord->created_at ) )
+    $record = $this->Database->prepare( 'select created_at from <?php echo $this->table ?> where id = ?' )
+                             ->execute( $dca->id );
+
+    $record->next();
+
+    if ( ! strlen( $record->created_at ) )
     {
       $this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
                      ->execute( time(), $dca->id );

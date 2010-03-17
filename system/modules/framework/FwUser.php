@@ -34,7 +34,7 @@
  * @author     Olivier El Mekki 
  * @package    Model
  */
-class FwPage extends EModel
+class FwUser extends EModel
 {
   protected $strTable = "tl_user" ;
 }
