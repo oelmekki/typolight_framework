@@ -43,9 +43,48 @@ abstract class FrontendController extends Module
   protected $isJson;
   protected $sendJson = array();
   protected $lang;
-  protected $arrCache = array();
-  protected $uncachable = array();
-  protected $arrActions = array();
+  protected $arrCache     = array();
+  protected $uncachable   = array();
+  protected $arrActions   = array();
+
+
+  /**
+   * beforeFilters are methods to be executed before actions.
+   * Specify an array of method names.
+   *
+   * If you give a simple string, the method will be executed
+   * before every method.
+   *
+   * if you give an array, specify the method name as 'method' key
+   * and specified a list of actions as 'except' or 'only' keys.
+   * This way, the method will be executed only or at the exception
+   * of the actions specified.
+   * The value of 'except' and 'only' keys can be the method name
+   * to execute, as string, or an array of method names.
+   *
+   * You can use the magic method name "pass<em>Something</em>" to
+   * pass an attribute to the template. This also works with getters.
+   * passSomething will execute :
+   * $this->Template->something = $this->something;
+   *
+   * example :
+   * protected $beforeFilter = array(
+   *   'checkCredential',
+   *   array( 'method' => 'getParentId', 'only' => 'create' ),
+   *   array( 'method' => 'getItemId', 'except' => 'index' ),
+   *   array( 'method' => 'importItemJavascript', 'only' => array( 'index', 'show', 'search' ) ),
+   *   'passSitename',
+   * );
+   **/
+  protected $beforeFilters = array();
+
+
+  /**
+   * afterFilters acts just like beforeFilters, but are executed after the action.
+   **/
+  protected $afterFilters = array();
+
+
 
   public function __construct( Database_Result $objModule, $strColumn = 'main', $templateClass = 'FrontendTemplate' )
   {
@@ -208,7 +247,9 @@ abstract class FrontendController extends Module
     $this->Template->hl       = $this->hl;
 
 
+    $this->executeBeforeFilters();
     $this->$action();
+    $this->executeAfterFilters();
 
     $this->Template->lang               = $this->lang;
     $this->Template->pagename           = $this->pagename;
@@ -233,6 +274,7 @@ abstract class FrontendController extends Module
   {
     if ( $GLOBALS[ 'TEST_ENV' ] and class_exists( 'RedirectionException' ) )
     {
+      echo "Redirected\n";
       throw new RedirectionException( $strLocation, $intStatus, 'redirected' );
     }
 
@@ -342,5 +384,69 @@ abstract class FrontendController extends Module
     $pagination->lang       = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'framework_pagination' ];
 
     $this->pagination = $pagination->parse();
+  }
+
+
+  private function executeBeforeFilters()
+  {
+    $this->executeFilters( $this->beforeFilters );
+  }
+
+
+  private function executeAfterFilters()
+  {
+    $this->executeFilters( $this->afterFilters );
+  }
+
+
+  private function executeFilters( $filters )
+  {
+    foreach ( $filters as $filter )
+    {
+      if ( is_array( $filter ) )
+      {
+        $method = $filter[ 'method' ];
+
+        if ( is_string( $filter[ 'only' ] ) and $this->action != $filter[ 'only' ] )
+        {
+          continue;
+        }
+
+        if ( is_array( $filter[ 'only' ] ) and ! in_array( $this->action, $filter[ 'only' ] ) )
+        {
+          continue;
+        }
+
+        if ( is_string( $filter[ 'except' ] ) and $this->action == $filter[ 'except' ] )
+        {
+          continue;
+        }
+
+        if ( is_array( $filter[ 'except' ] ) and in_array( $this->action, $filter[ 'except' ] ) )
+        {
+          continue;
+        }
+      }
+
+      else
+      {
+        $method = $filter;
+      }
+
+      if ( strpos( $method, 'pass' ) === 0 )
+      {
+        $attr         = str_replace( 'pass', '', $method );
+        $firstLetter  = substr( $attr, 0, 1 );
+        $rest         = substr( $attr, 1 );
+        $attr         = strtolower( $firstLetter ) . $rest;
+
+        $this->Template->$attr = $this->$attr;
+      }
+
+      else
+      {
+        $this->$method();
+      }
+    }
   }
 }
