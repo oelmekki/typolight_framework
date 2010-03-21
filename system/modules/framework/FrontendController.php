@@ -361,7 +361,7 @@ abstract class FrontendController extends Module
   protected function preparePagination( $model, $route = null, $routeParams = array() )
   {
     $page_count = $model->paginate_page_count;
-    $page       = $model->paginate_page;
+    $page       = $model->paginate_page + 1;
     $links      = array();
 
     for ( $i = 1; $i <= $page_count; $i++ )
