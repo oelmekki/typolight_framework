@@ -28,15 +28,61 @@
 
 
 /**
- * Class FwUser
+ * Class FwRegistered
  *
  * @copyright  Olivier El Mekki, 2010 
  * @author     Olivier El Mekki 
  * @package    Model
  */
-class FwUser extends FwRegistered
+abstract class FwRegistered extends EModel
 {
-  protected $strTable     = "tl_user" ;
-  protected $group_table  = "tl_user_group";
-}
+  public function getGroupNames()
+  {
+    $groups = deserialize( $this->groups );
+    if ( ! count( $groups ) )
+    {
+      return array();
+    }
 
+    $query  = 'select name from ' . $this->group_table . ' where ';
+    $params = array();
+    foreach ( $groups as $group )
+    {
+      $query .= 'id = ? and';
+      $params[] = $group;
+    }
+
+    $query = substr( $query, 0, strlen( $query ) - 4 );
+
+    $records = $this->Database->prepare( $query )
+                              ->execute( $params );
+
+    $group_names = array();
+    while ( $record->next() )
+    {
+      $group_names[] = $record->name;
+    }
+
+    return $group_names;
+  }
+
+
+  public function hasGroup( $group_name )
+  {
+    return in_array( $group_name, $this->groupNames );
+  }
+
+
+  public function hasGroups( $group_names )
+  {
+    foreach ( $group_names as $group_name )
+    {
+      if ( ! $this->hasGroup( $group_name ) )
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}

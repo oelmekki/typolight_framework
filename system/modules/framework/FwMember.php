@@ -34,8 +34,9 @@
  * @author     Olivier El Mekki 
  * @package    Model
  */
-class FwMember extends EModel
+class FwMember extends FwRegistered
 {
-  protected $strTable = "tl_member" ;
+  protected $strTable     = "tl_member" ;
+  protected $group_table  = "tl_member_group";
 }
 
