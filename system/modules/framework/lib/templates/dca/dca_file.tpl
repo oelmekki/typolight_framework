@@ -124,7 +124,7 @@ class <?php echo $this->table ?> extends Backend
 
     $record->next();
 
-    if ( ! strlen( $record->created_at ) )
+    if ( ! $record->created_at )
     {
       $this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
                      ->execute( time(), $dca->id );
