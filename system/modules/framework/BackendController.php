@@ -45,6 +45,8 @@ abstract class BackendController extends BackendModule
   protected $arrCache = array();
   protected $uncachable = array();
   protected $arrActions = array();
+  protected $params;
+  protected $wrap = true;
 
   public function __construct( DataContainer $objDc = null )
   {
@@ -128,6 +130,34 @@ abstract class BackendController extends BackendModule
   }
 
 
+  /**
+   * Magic method that let you generate the backend module from
+   * the config file of your extension using the "key" method.
+   * give, e.g., the 'callIndex' method name to generate the
+   * module with the index method.
+   **/
+  public function __call( $statement, $params )
+  {
+    if ( strpos( $statement, 'call' ) === 0 )
+    {
+      $method      = substr( $statement, 4 );
+      $firstLetter = substr( $method, 0, 1 );
+      $rest        = substr( $method, 1 );
+      $method      = strtolower( $firstLetter ) . $rest;
+
+      $this->Input->setGet( 'act', $method );
+      if ( $params )
+      {
+        $this->params = $params;
+      }
+
+      return $this->generate();
+    }
+
+    throw new Exception( 'Unknown method: ' . $statement );
+  }
+
+
 
   /**
    * Determine which action to launch
@@ -185,9 +215,13 @@ abstract class BackendController extends BackendModule
       die();
     }
 
-    $wrapper->main = $this->Template->parse();
+    if ( $this->wrap )
+    {
+      $wrapper->main = $this->Template->parse();
+      return $wrapper->parse();
+    }
 
-    return $wrapper->parse();
+    return $this->Template->parse();
   }
 
 
