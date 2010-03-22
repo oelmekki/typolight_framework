@@ -38,7 +38,7 @@ $GLOBALS['TL_DCA']['<?php echo $this->table ?>'] = array
 	(
 		'dataContainer'               => 'Table',
 		'enableVersioning'            => true,
-                'onsubmit_callback'           => array( array( '<?php echo $this->table ?>', 'setCreatedAt' ) ),
+                'onsubmit_callback'           => array( array( '<?php echo $this->backendClass ?>', 'setCreatedAt' ) ),
 	),
 
 	// List
@@ -115,19 +115,3 @@ $GLOBALS['TL_DCA']['<?php echo $this->table ?>'] = array
 	),
 );
 
-class <?php echo $this->table ?> extends Backend
-{
-  public function setCreatedAt( $dca )
-  {
-    $record = $this->Database->prepare( 'select created_at from <?php echo $this->table ?> where id = ?' )
-                             ->execute( $dca->id );
-
-    $record->next();
-
-    if ( ! $record->created_at )
-    {
-      $this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
-                     ->execute( time(), $dca->id );
-    }
-  }
-}

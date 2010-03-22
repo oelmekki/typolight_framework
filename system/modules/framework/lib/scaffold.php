@@ -12,6 +12,8 @@ class Scaffold
   protected $module;
   protected $dcaPath;
   protected $langsPath;
+  protected $backendClass;
+  protected $backendClassPath;
   protected $fields = array();
 
 
@@ -73,6 +75,19 @@ class Scaffold
       }
     }
 
+    $backendClass = str_replace( 'tl_', '', $this->table);
+    $chunks = explode( '_', $backendClass );
+    $this->backendClass = 'Backend';
+    foreach ( $chunks as $chunk )
+    {
+      $firstLetter = substr( $chunk, 0, 1 );
+      $rest        = substr( $chunk, 1 );
+      $this->backendClass .= strtoupper( $fistLetter ) . $rest;
+    }
+
+    $this->backendClassPath = $this->extensionPath . '/' . $this->backendClass . '.php';
+
+
     foreach ( $this->args as $arg )
     {
       $chunks = explode( ':', $arg );
@@ -93,6 +108,7 @@ class Scaffold
       exit( 1 );
     }
 
+    $this->generateBackendClass();
     $this->generateDCA();
     $this->generateDatabase();
     $this->generateConfig();
@@ -104,7 +120,7 @@ class Scaffold
   protected function checkPermissions()
   {
     $filesToCheck  = array( $this->extensionPath, $this->dbPath, $this->confPath);
-    $filesToCreate = array_merge( array( $this->dcaPath ), $this->langsPath );
+    $filesToCreate = array_merge( array( $this->dcaPath, $this->backendClassPath ), $this->langsPath );
 
     foreach ( $filesToCheck as $fileToCheck )
     {
@@ -137,11 +153,12 @@ class Scaffold
   {
     $langList = "";
 
-    echo "extension: " . $this->extensionPath . "\n";
-    echo "module:    " . $this->module . "\n";
-    echo "dca:       " . $this->dcaPath . "\n";
-    echo "config:    " . $this->confPath . "\n";
-    echo "database:  " . $this->dbPath . "\n"; 
+    echo "extension:    " . $this->extensionPath . "\n";
+    echo "module:       " . $this->module . "\n";
+    echo "backend class " . $this->backendClassPath . "\n";
+    echo "dca:          " . $this->dcaPath . "\n";
+    echo "config:       " . $this->confPath . "\n";
+    echo "database:     " . $this->dbPath . "\n"; 
     echo "fields:    \n";
     foreach ( $this->fields as $field => $type  )
     {
@@ -161,6 +178,23 @@ class Scaffold
     }
 
     return false;
+  }
+
+
+
+  protected function generateBackendClass()
+  {
+    $template = dirname( __FILE__ ) . '/templates/backendClass.tpl';
+    ob_start();
+    require( $template );
+    $templateStr = ob_get_clean();
+    $templateStr = str_replace( '[?php', '<?php', $templateStr  );
+
+    file_put_contents( $this->backendClassPath, $templateStr );
+    if ( $this->interactive )
+    {
+      echo "Created " . $this->backendClassPath . "\n";
+    }
   }
 
 
