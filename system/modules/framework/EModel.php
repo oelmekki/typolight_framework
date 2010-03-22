@@ -974,13 +974,25 @@ abstract class EModel extends Model
    */
   public function ids( $collection = null )
   {
-    $all = ( is_array( $collection ) ? $collection : $this->all );
     $ids = array();
 
-    foreach ( $all as $one )
+    if ( is_array( $collection ) )
     {
-      $ids[] = $one->id;
+      foreach ( $collection as $item )
+      {
+        $ids[] = $item->id;
+      }
     }
+
+    else
+    {
+      $record = $this->Database->execute( 'select id from ' . $this->strTable );
+      while ( $record->next() )
+      {
+        $ids[] = $record->id;
+      }
+    }
+
 
     return $ids;
   }
