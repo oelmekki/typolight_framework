@@ -36,7 +36,7 @@
  */
 class <?php echo $this->backendClass ?> extends BackendController
 {
-  protected $controller = '<?php echo str_replace( 'tl_', '', $this->table ?>';
+  protected $controller = '<?php echo str_replace( 'tl_', '', $this->table ) ?>';
   protected $arrActions = array();
 
 

@@ -82,7 +82,7 @@ class Scaffold
     {
       $firstLetter = substr( $chunk, 0, 1 );
       $rest        = substr( $chunk, 1 );
-      $this->backendClass .= strtoupper( $fistLetter ) . $rest;
+      $this->backendClass .= strtoupper( $firstLetter ) . $rest;
     }
 
     $this->backendClassPath = $this->extensionPath . '/' . $this->backendClass . '.php';
