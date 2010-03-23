@@ -188,7 +188,10 @@ class Route extends EModel
         $addStr = '?';
         foreach ( $additionals as $param => $value )
         {
-          $addStr .= sprintf( '%s=%s&', $param, $value );
+          if ( strlen( $value ) )
+          {
+            $addStr .= sprintf( '%s=%s&', $param, $value );
+          }
         }
 
         $addStr = substr( $addStr, 0, strlen( $addStr ) - 1 );
