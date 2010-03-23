@@ -167,7 +167,8 @@ class Route extends EModel
     $route = new Route() ;
     if ( $route->findBy( 'name', $name ) )
     {
-      $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
+      $path        = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
+      $additionals = array();
 
       foreach ( $params as $param => $value )
       {
@@ -175,9 +176,30 @@ class Route extends EModel
         {
           $path = str_replace( ':' . $param, $value, $path ) ;
         }
+
+        else
+        {
+          $additionals[ $param ] = $value;
+        }
       }
 
-      return $path . $suffix ;
+      if ( count( $additionals ) )
+      {
+        $addStr = '?';
+        foreach ( $additionals as $param => $value )
+        {
+          $addStr .= sprintf( '%s=%s&', $param, $value );
+        }
+
+        $addStr = substr( $addStr, 0, strlen( $addStr ) - 1 );
+      }
+
+      else
+      {
+        $addStr = '';
+      }
+
+      return $path . $suffix . $addStr;
     }
 
     else
@@ -203,16 +225,10 @@ class Route extends EModel
 
       else
       {
-        $env  = Environment::getInstance();
-        $path = $env->url . TL_PATH . '/' . $paramStr;
+        $path = $this->Environment->url . TL_PATH . '/' . $paramStr;
         return $path;
       }
-
-
     }
-
-
-
   }
 
 
