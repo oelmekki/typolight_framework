@@ -228,7 +228,8 @@ class Route extends EModel
 
       else
       {
-        $path = $this->Environment->url . TL_PATH . '/' . $paramStr;
+        $env = Environment::getInstance();
+        $path = $env->url . TL_PATH . '/' . $paramStr;
         return $path;
       }
     }
