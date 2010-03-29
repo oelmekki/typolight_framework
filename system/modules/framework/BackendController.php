@@ -197,17 +197,24 @@ abstract class BackendController extends BackendModule
     $action = $this->action;
 
     $wrapper        = new BackendTemplate( 'be_framework_controller' );
-    $this->Template = new BackendTemplate( 'be_' . $this->controller . '_' . $action );
+
+    // use a fake template for now, just in case of redirection action
+    $this->Template = (object) array();
 
     $wrapper->href     = $this->getReferer( true );
     $wrapper->title    = specialchars($GLOBALS['TL_LANG']['MSC']['backBT']);
 
-
-    $this->$action();
-
     $this->Template->lang               = $this->lang;
     $this->Template->pagename           = $this->pagename;
     $this->Template->absolute_pagename  = $this->absolutePagename;
+
+
+    $this->$action();
+
+    // create the real template
+    $faked = (array) $this->Template;
+    $this->Template = new BackendTemplate( 'be_' . $this->controller . '_' . $action );
+    $this->Template->setData( $faked );
 
     if ( $this->isJson )
     {

@@ -229,7 +229,9 @@ abstract class FrontendController extends Module
     $action = $this->action;
     $templateClass = $this->templateClass;
 
-    $this->Template = new $templateClass( 'mod_' . $this->controller . '_' . $action );
+    // use a fake template for now, just in case of redirection action
+    $this->Template = (object) array();
+
     if (strlen($this->arrData['space'][0]))
     {
       $this->arrStyle[] = 'margin-top:'.$this->arrData['space'][0].'px;';
@@ -250,6 +252,11 @@ abstract class FrontendController extends Module
     $this->executeBeforeFilters();
     $this->$action();
     $this->executeAfterFilters();
+
+    // create the real template
+    $faked = (array) $this->Template;
+    $this->Template = new $templateClass( 'mod_' . $this->controller . '_' . $action );
+    $this->Template->setData( $faked );
 
     $this->Template->lang               = $this->lang;
     $this->Template->pagename           = $this->pagename;
