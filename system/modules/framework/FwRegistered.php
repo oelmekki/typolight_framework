@@ -58,9 +58,9 @@ abstract class FwRegistered extends EModel
                               ->execute( $params );
 
     $group_names = array();
-    while ( $record->next() )
+    while ( $records->next() )
     {
-      $group_names[] = $record->name;
+      $group_names[] = $records->name;
     }
 
     return $group_names;
