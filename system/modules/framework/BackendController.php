@@ -336,4 +336,20 @@ abstract class BackendController extends BackendModule
 
     $this->pagination = $pagination->parse();
   }
+
+
+
+  /**
+   * Redirect to the error page
+   **/
+  protected function error( $log = null )
+  {
+    if ( $log )
+    {
+      $this->log( $log, 'BackendController error()', TL_GENERAL );
+      error_log( $log );
+    }
+
+    $this->redirect( $this->Environment->script . '?act=error' );
+  }
 }
