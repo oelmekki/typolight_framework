@@ -64,7 +64,6 @@ class Route extends EModel
       {
         $length = strlen( $arrFragments[ $lastIndex ] );
         $arrFragments[ $lastIndex ] = substr( $arrFragments[ $lastIndex ], 0, $length - ( $sup_ln + 1 ) );
-        error_log( $arrFragments[ $lastIndex ] );
       }
     }
 
