@@ -52,6 +52,8 @@ $GLOBALS[ 'TL_HOOKS' ][ 'replaceInsertTags' ][]     = array( 'Route', 'insertTag
 $GLOBALS[ 'TL_CACHE' ][] = 'tl_framework_cached_routes';
 $GLOBALS[ 'TL_CRON' ][ 'weekly' ][] = array( 'Route', 'purgeCache' );
  
+$GLOBALS[ 'DOC_SUP_FORMATS' ][] = 'json';
+
 /**
  * -------------------------------------------------------------------------
  * ROUTES

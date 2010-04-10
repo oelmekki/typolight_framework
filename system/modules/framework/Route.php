@@ -57,11 +57,17 @@ class Route extends EModel
   public function match( $arrFragments )
   {
     $lastIndex = count( $arrFragments ) - 1;
-    if ( substr( $arrFragments[ $lastIndex ], -5, 5 ) == '.json' )
+    foreach ( $GLOBALS[ 'DOC_SUP_FORMATS' ] as $sup )
     {
-      $length = strlen( $arrFragments[ $lastIndex ] );
-      $arrFragments[ $lastIndex ] = substr( $arrFragments[ $lastIndex ], 0, $length - 5 );
+      $sup_ln = strlen( $sup );
+      if ( in_array( substr( $arrFragments[ $lastIndex ], - ( $sup_ln ), $sup_ln ), $GLOBALS[ 'DOC_SUP_FORMATS' ] ) )
+      {
+        $length = strlen( $arrFragments[ $lastIndex ] );
+        $arrFragments[ $lastIndex ] = substr( $arrFragments[ $lastIndex ], 0, $length - ( $sup_ln + 1 ) );
+        error_log( $arrFragments[ $lastIndex ] );
+      }
     }
+
 
     $arrRouteFragments = explode( '/', $this->route ) ;
     $arrOrderedFragments = array() ;
@@ -152,16 +158,14 @@ class Route extends EModel
    */
   public static function compose( $name, $params=array(), $format = 'html' )
   {
-    // find suffix
-    switch ( $format )
+    if ( $format == 'html' )
     {
-    case 'html':
       $suffix = $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ];
-      break;
+    }
 
-    case 'json':
-      $suffix = '.json';
-      break;
+    else
+    {
+      $suffix = '.' . $format;
     }
 
     $route = new Route() ;
