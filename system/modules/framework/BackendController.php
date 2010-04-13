@@ -47,6 +47,7 @@ abstract class BackendController extends BackendModule
   protected $arrActions = array();
   protected $params;
   protected $wrap = true;
+  protected $href;
 
   public function __construct( DataContainer $objDc = null )
   {
@@ -201,7 +202,6 @@ abstract class BackendController extends BackendModule
     // use a fake template for now, just in case of redirection action
     $this->Template = (object) array();
 
-    $wrapper->href     = $this->getReferer( true );
     $wrapper->title    = specialchars($GLOBALS['TL_LANG']['MSC']['backBT']);
 
     $this->Template->lang               = $this->lang;
@@ -224,7 +224,14 @@ abstract class BackendController extends BackendModule
 
     if ( $this->wrap )
     {
+      
+      if ( ! strlen( $this->href ) )
+      {
+        $this->href = $this->getReferer( true );
+      }
+
       $wrapper->main = $this->Template->parse();
+      $wrapper->href = $this->href;
       return $wrapper->parse();
     }
 
@@ -351,5 +358,21 @@ abstract class BackendController extends BackendModule
     }
 
     $this->redirect( $this->Environment->script . '?act=error' );
+  }
+
+
+
+  /**
+   * Set the referer
+   **/
+  public function setReferer( $current, $last = null )
+  {
+    if ( $last = null )
+    {
+      $session = $this->Session->getData();
+      $last = $session[ 'referer' ][ 'current' ];
+    }
+
+    $this->Session->set( 'referer', array( 'current' => $current, 'last' => $last ) );
   }
 }
