@@ -163,7 +163,7 @@ class Json extends System
    */
   public static function decode( $data )
   {
-    return json_decode( $data );
+    return json_decode( $data, true );
   }
 }
 
