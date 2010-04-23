@@ -247,6 +247,7 @@ abstract class FrontendController extends Module
     $this->Template->class    = trim('mod_' . $this->type . ' ' . $this->cssID[1]);
     $this->Template->headline = $this->headline;
     $this->Template->hl       = $this->hl;
+    $this->Template->action   = $this->action;
 
 
     $this->executeBeforeFilters();
