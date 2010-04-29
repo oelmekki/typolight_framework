@@ -78,15 +78,6 @@ abstract class BackendController extends BackendModule
   }
 
 
-  /**
-   * Fix referer bug for keyed actions
-   **/
-  public function __destruct()
-  {
-
-  }
-
-
 
   /**
    * Check if a getter method exists
