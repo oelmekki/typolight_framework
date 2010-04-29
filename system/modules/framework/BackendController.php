@@ -67,12 +67,14 @@ abstract class BackendController extends BackendModule
     // Fix referer issue on keyed actions
     $session      = $this->Session->getData();
     $httpReferer  = ampersand( $this->Environment->httpReferer, true );
+    $arrReferer   = parse_url( $httpReferer );
+    $referer      = $arrReferer[ 'path' ] . ( strlen( $arrReferer[ 'query' ] ) ? '?' . $arrReferer[ 'query' ] : '' );
 
-    if ( $this->Input->get( 'key' ) and $httpReferer != $session[ 'referer' ][ 'current' ] )
+    if ( $this->Input->get( 'key' ) and $referer != $session[ 'referer' ][ 'current' ] )
     {
        $referer = parse_url( $httpReferer );
        $session['referer']['last']    = $session['referer']['current'];                                                                                                                                                          
-       $session['referer']['current'] = $referer[ 'path' ] . ( strlen( $referer[ 'query' ] ) ? '?' . $referer[ 'query' ] : '' );
+       $session['referer']['current'] = $referer;
        $this->Session->setData( $session );
     }
   }
