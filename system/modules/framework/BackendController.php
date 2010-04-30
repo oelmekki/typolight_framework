@@ -72,7 +72,6 @@ abstract class BackendController extends BackendModule
 
     if ( $this->Input->get( 'key' ) and $referer != $session[ 'referer' ][ 'current' ] )
     {
-       $referer = parse_url( $httpReferer );
        $session['referer']['last']    = $session['referer']['current'];                                                                                                                                                          
        $session['referer']['current'] = $referer;
        $this->Session->setData( $session );
