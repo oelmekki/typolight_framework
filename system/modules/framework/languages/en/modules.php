@@ -37,6 +37,4 @@ $GLOBALS['TL_LANG']['MOD']['hardRoutes'] = array( 'Hard Routes List', 'This modu
 /**
  * Front end modules
  */
-$GLOBALS['TL_LANG']['FMD'][''] = array('', '');
-
-?>
+$GLOBALS['TL_LANG']['FMD']['messages'] = array('Messages', 'Display messages from previous action');

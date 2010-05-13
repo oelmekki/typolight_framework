@@ -37,6 +37,7 @@ $GLOBALS[ 'BE_MOD' ][ 'framework' ][ 'hardRoutes' ] = array
 ) ;
 
 $GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedNav' ]  = 'ModuleRoutedNav';
+$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'messages' ]   = 'ControllerMessages';
 $GLOBALS[ 'BE_FFL' ][ 'paramWizard' ]               = 'ParamWizard' ;  
 $GLOBALS[ 'BE_FFL' ][ 'routesWizard' ]              = 'RoutesWizard' ;  
 $GLOBALS[ 'BE_FFL' ][ 'manyToManyCheckbox' ]        = 'ManyToManyCheckbox' ;  

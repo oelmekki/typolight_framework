@@ -100,6 +100,15 @@ abstract class FrontendController extends Module
     {
       $this->import( 'Json' );
     }
+
+    $session = $this->Session->getData();
+
+    if ( count( $session[ 'TL_MSG' ] ) )
+    {
+      $GLOBALS[ 'TL_MSG' ] = $session[ 'TL_MSG' ];
+      unset( $session[ 'TL_MSG' ] );
+      $this->Session->setData( $session );
+    }
   }
 
 
@@ -271,6 +280,22 @@ abstract class FrontendController extends Module
     }
 
     return $this->Template->parse();
+  }
+
+
+  /**
+   * Pass a message to the next action.
+   * The message will be put in the $GLOBALS[ 'TL_MSG' ] array,
+   * at the $level key ( default to 'info' ).
+   *
+   * @param string    the message to pass
+   * @param string    the level concerned ( eg: info, warn, error ... )
+   **/
+  protected function passMessage( $message, $level = 'info' )
+  {
+    $session = $this->Session->getData();
+    $session[ 'TL_MSG' ][ $level ][] = $message;
+    $this->Session->setData( $session );
   }
 
 
