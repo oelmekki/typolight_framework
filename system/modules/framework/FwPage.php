@@ -48,7 +48,7 @@ class FwPage extends EModel
         return false;
       }
 
-      $parent = $this->FwPage();
+      $parent = new FwPage( $this->pid );
       if ( $parent->id )
       {
         $continue = true;
@@ -59,7 +59,7 @@ class FwPage extends EModel
             return false;
           }
 
-          $parent = $parent->FwPage();
+          $parent = new FwPage( $parent->pid );
           if ( ! $parent->id )
           {
             $continue = false;
@@ -77,7 +77,7 @@ class FwPage extends EModel
         return false;
       }
 
-      $parent = $this->FwPage();
+      $parent = new FwPage( $this->pid );
       if ( $parent->id )
       {
         $continue = true;
@@ -88,7 +88,7 @@ class FwPage extends EModel
             return false;
           }
 
-          $parent = $parent->FwPage();
+          $parent = new FwPage( $parent->pid );
           if ( ! $parent->id )
           {
             $continue = false;
