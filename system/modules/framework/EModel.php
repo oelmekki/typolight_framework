@@ -280,7 +280,7 @@ abstract class EModel extends Model
 
 
   /**
-   * @var array Attributes that are allowed to be set through update_attributes() and create().
+   * @var array Attributes that are allowed to be set through updateAttributes() and create().
    * If empty, any attribute can be set.
    **/
   protected $filtered_attrs = array();
@@ -566,22 +566,30 @@ abstract class EModel extends Model
    * 
    * @param array (associative) attributes and their value
    * @return bool|integer the id of the saved record or false if error
-   * @throws Exception if a filtered attribute is passed in the array
    */
-  public function update_attributes( $attributes )
+  public function updateAttributes( $attributes )
   {
-    foreach ( $attributes as $attr => $value )
-    {
-      if ( in_array( $attr, $this->filtered_attrs ) )
-      {
-        throw new Exception( "Filtered attribute set from update_attributes()" );
-      }
-
-      $this->$attr = $value;
-    }
-
+    $this->attributes = $attributes;
     return $this->save();
   }
+
+
+
+  /**
+   * Set attributes without saving, but by filtering against filtered_attributes
+   *
+   * @param array (associative) attributes and their value
+   **/
+   public function setAttributes( $attributes )
+   {
+     foreach ( $attributes as $attr => $value )
+     {
+       if ( ! in_array( $attr, $this->filtered_attrs ) )
+       {
+         $this->$attr = $value;
+       }
+     }
+   }
 
 
 
