@@ -602,14 +602,6 @@ abstract class EModel extends Model
    */
   public function create( $attributes )
   {
-    foreach ( $attributes as $attr => $value )
-    {
-      if ( in_array( $attr, $this->filtered_attrs ) )
-      {
-        throw new Exception( "Filtered attribute set from create()" );
-      }
-    }
-      
     $this->setData( $attributes );
     return $this->save();
   }
