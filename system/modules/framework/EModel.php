@@ -580,7 +580,7 @@ abstract class EModel extends Model
    *
    * Before being save, validations will be tested against the object.
    * If the object does not validates, false will be return and the
-   * hasError() method will return true.
+   * hasErrors() method will return true.
    * You can use the virtual attribute "errors" to find the error,
    * or errorsOn().
    *
@@ -639,7 +639,7 @@ abstract class EModel extends Model
 
     $this->tstamp = time();
     $this->validate();
-    if ( ! $this->hasError() )
+    if ( ! $this->hasErrors() )
     {
       if ($this->blnRecordExists && !$blnForceInsert)
       {
@@ -749,7 +749,7 @@ abstract class EModel extends Model
    {
      foreach ( $attributes as $attr => $value )
      {
-       if ( ! in_array( $attr, $this->filtered_attrs ) )
+       if ( ! count( $his->filtered_attrs ) or in_array( $attr, $this->filtered_attrs ) )
        {
          $this->$attr = $value;
        }
@@ -1469,6 +1469,154 @@ abstract class EModel extends Model
 
 
   /**
+   * Get uploaded file and set its path to the given attribute.
+   *
+   * The default is to use the application default as configured in
+   * the backend configuration page. You can override those settings
+   * using the options array. Its recognized keys are :
+   * - mandatory      ( boolean )
+   * - maxSize        ( integer )
+   * - uploadTypes    ( array of strings )
+   * - imageWidth     ( integer )
+   * - imageHeight    ( integer )
+   * - overwrite      ( boolean )
+   *
+   * @param string name           the name of the file input
+   * @param string attribute      the name of the attribute to set
+   * @param string uploadFolder   the target folder
+   * @param array options         the options ( see above )
+   **/
+  protected function retrieveUpload( $name, $attribute, $uploadFolder, $options = array() )
+  {
+    $mandatory    = ( !! $options[ 'mandatory' ] );
+    $maxSize      = ( isset( $options[ 'maxSize' ] ) ? $options[ 'maxSize' ] : $GLOBALS[ 'TL_CONFIG' ][ 'maxFileSize' ] );
+    $uploadTypes  = ( isset( $options[ 'uploadTypes' ] ) ? $options[ 'uploadTypes' ] : trimsplit( ',', $GLOBALS[ 'TL_CONFIG' ][ 'uploadTypes' ] ) );
+    $imageWidth   = ( isset( $options[ 'imageWidth' ] ) ? $options[ 'imageWidth' ] : $GLOBALS[ 'TL_CONFIG' ][ 'imageWidth' ] );
+    $imageHeight  = ( isset( $options[ 'imageHeight' ] ) ? $options[ 'imageHeight' ] : $GLOBALS[ 'TL_CONFIG' ][ 'imageHeight' ] );
+    $overwrite    = ( isset( $options[ 'overwrite' ] ) ? $options[ 'overwrite' ] : true );
+
+
+    // No file specified
+    if (!isset( $_FILES[ $name ] ) || empty( $_FILES[ $name ][ 'name' ] ) )
+    {
+      if ( $mandatory )
+      {
+        $this->setError( $GLOBALS['TL_LANG']['ERR']['mdtryNoLabel'], $attribute );
+      }
+
+      return false;
+    }
+
+
+    $file         = $_FILES[ $name ];
+    $maxlength_kb = $this->getReadableSize( $maxSize );
+
+
+    // Romanize the filename
+    $file['name'] = utf8_romanize( $file[ 'name' ] );
+
+
+    // File was not uploaded
+    if ( ! is_uploaded_file( $file[ 'tmp_name' ] ) )
+    {
+      if ( in_array( $file[ 'error' ], array( 1, 2 ) ) )
+      {
+        $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['filesize'], $maxlength_kb ), $attribute );
+      }
+
+      if ( $file[ 'error' ] == 3 )
+      {
+        $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['filepartial'], $file['name'] ), $attribute );
+      }
+
+      unset( $_FILES[ $name ] );
+      return false;
+    }
+
+
+    // File is too big
+    if ($maxSize > 0 && $file['size'] > $maxSize )
+    {
+      $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['filesize'], $maxlength_kb ), $attribute );
+      unset( $_FILES[ $name ] );
+      return false;
+    }
+
+
+    $pathinfo = pathinfo( $file[ 'name' ] );
+
+
+    // File type is not allowed
+    if ( ! in_array( strtolower( $pathinfo['extension'] ), $uploadTypes ) )
+    {
+      $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['filetype'], $pathinfo[ 'extension' ] ), $attribute );
+      unset( $_FILES[ $name ] );
+      return false;
+    }
+
+
+    if ( ( $arrImageSize = @getimagesize( $file['tmp_name'] ) ) != false )
+    {
+      // Image exceeds maximum image width
+      if ($arrImageSize[0] > $imageWidth )
+      {
+        $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['filewidth'], $file['name'], $imageWidth ), $attribute );
+        unset( $_FILES[ $name ] );
+        return false;
+      }
+
+      // Image exceeds maximum image height
+      if ( $arrImageSize[1] > $imageHeight )
+      {
+        $this->setError( sprintf( $GLOBALS['TL_LANG']['ERR']['fileheight'], $file['name'], $imageHeight ), $attribute );
+        unset( $_FILES[ $name ] );
+        return;
+      }
+
+      if ( ! $this->hasErrors( $attribute ) )
+      {
+        // Store the file if the upload folder exists
+        if ( strlen( $uploadFolder ) && is_dir( TL_ROOT . '/' . $uploadFolder ) )
+        {
+          $files = Files::getInstance();
+
+          // Do not overwrite existing files
+          if ( ! $overwrite && file_exists( TL_ROOT . '/' . $uploadFolder . '/' . $file[ 'name' ] ) )
+          {
+            $offset     = 1;
+            $pathinfo   = pathinfo( $file[ 'name' ] );
+            $filename   = $pathinfo[ 'filename' ];
+
+            $arrAll   = scan( TL_ROOT . '/' . $uploadFolder );
+            $arrFiles = preg_grep( '/^' . preg_quote($filename, '/') . '.*\.' . preg_quote( $pathinfo['extension'], '/' ) . '/', $arrAll );
+
+            foreach ( $arrFiles as $strFile )
+            {
+              if ( preg_match('/__[0-9]+\.' . preg_quote( $pathinfo[ 'extension' ], '/' ) . '$/', $strFile ) )
+              {
+                $strFile  = str_replace( '.' . $pathinfo['extension'], '', $strFile );
+                $intValue = intval( substr( $strFile, ( strrpos( $strFile, '_') + 1 ) ) );
+                $offset   = max( $offset, $intValue );
+              }
+            }
+
+            $file['name'] = str_replace($filename, $filename . '__' . ++$offset, $file['name'] );
+          }
+
+          $files->move_uploaded_file( $file[ 'tmp_name' ], $uploadFolder . '/' . $file['name'] );
+          $files->chmod( $uploadFolder . '/' . $file['name'], 0644 );
+          $this->$attribute = $uploadFolder . '/' . $file[ 'name' ];
+
+        }
+      }
+
+      unset( $_FILES[ $name ] );
+    }
+  }
+
+
+
+  /**
    * Flush the cash
    * All cached results are dropped
    */
@@ -2098,7 +2246,5 @@ abstract class EModel extends Model
       }
     }
   }
-
-
 }
 
