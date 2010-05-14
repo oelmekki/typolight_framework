@@ -7,6 +7,6 @@
     <?php if ( $i + 1 < count( $messages ) ) : ?><br /><?php endif ?>
     <?php endforeach ?>
   </div>
-  <<?php endforeach ?>
+  <?php endforeach ?>
 </div><!-- .mod_messages -->
 <?php endif ?>
