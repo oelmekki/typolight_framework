@@ -307,6 +307,96 @@ abstract class EModel extends Model
 
 
 
+  /**
+   * Before save callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed before saving the object, either if the record
+   * already exists or not.
+   * Return false in the method to prevent save.
+   **/
+   protected $beforeSave = array();
+
+
+
+  /**
+   * After save callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed after saving the object, either if the record
+   * already exists or not.
+   **/
+   protected $afterSave = array();
+
+
+
+  /**
+   * Before create callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed before saving the object, if the record
+   * doesn't exist yet.
+   * Return false in the method to prevent save.
+   **/
+   protected $beforeCreate = array();
+
+
+
+  /**
+   * After create callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed after saving the object, if the record
+   * doesn't exist yet.
+   **/
+   protected $afterCreate = array();
+
+
+
+  /**
+   * Before update callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed before saving the object, if the record
+   * already exists.
+   * Return false in the method to prevent save.
+   **/
+   protected $beforeUpdate = array();
+
+
+
+  /**
+   * After update callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed after saving the object, if the record
+   * already exists.
+   **/
+   protected $afterUpdate = array();
+
+
+
+  /**
+   * Before delete callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed before deleting the object.
+   * Return false in the method to prevent deletion.
+   **/
+   protected $beforeDelete = array();
+
+
+
+  /**
+   * After delete callback.
+   *
+   * Give a list of method names, in an array.
+   * Those methods will be executed after deleting the object.
+   **/
+   protected $afterDelete = array();
+
+
+
   protected $_order_clause;
   protected $arrErrors = array();
   protected $arrCache  = array();
@@ -503,8 +593,53 @@ abstract class EModel extends Model
    */
   public function save( $blnForceInsert = null )
   {
+    $update = !! $this->id;
+
+    if ( $update )
+    {
+      if ( count( $this->beforeUpdate ) )
+      {
+        foreach ( $this->beforeUpdate as $method )
+        {
+          $return = $this->$method();
+          if ( $return === false )
+          {
+            return false;
+          }
+        }
+      }
+    }
+
+    else
+    {
+      if ( count( $this->beforeCreate ) )
+      {
+        foreach ( $this->beforeCreate as $method )
+        {
+          $return = $this->$method();
+          if ( $return === false )
+          {
+            return false;
+          }
+        }
+      }
+    }
+
+    if ( count( $this->beforeSave ) )
+    {
+      foreach ( $this->beforeSave as $method )
+      {
+        $return = $this->$method();
+        if ( $return === false )
+        {
+          return false;
+        }
+      }
+    }
+
     $this->tstamp = time();
-    if ( $this->validate() )
+    $this->validate();
+    if ( ! $this->hasError() )
     {
       if ($this->blnRecordExists && !$blnForceInsert)
       {
@@ -549,6 +684,36 @@ abstract class EModel extends Model
           return false;
         }
       }
+
+    if ( $update )
+    {
+      if ( count( $this->afterUpdate ) )
+      {
+        foreach ( $this->afterUpdate as $method )
+        {
+          $this->$method();
+        }
+      }
+    }
+
+    else
+    {
+      if ( count( $this->afterCreate ) )
+      {
+        foreach ( $this->afterCreate as $method )
+        {
+          $this->$method();
+        }
+      }
+    }
+
+    if ( count( $this->afterSave ) )
+    {
+      foreach ( $this->afterSave as $method )
+      {
+        $this->$method();
+      }
+    }
 
       return $this->id;
     }
@@ -617,12 +782,39 @@ abstract class EModel extends Model
    */
   public function delete()
   {
+    if ( count( $this->beforeDelete ) )
+    {
+      foreach ( $this->beforeDelete as $method )
+      {
+        $return = $this->$method();
+        if ( $return === false )
+        {
+          return false;
+        }
+      }
+    }
+
     if ( count( $this->manyToMany ) )
     {
       $this->cleanupAssociation();
     }
 
-    return !! parent::delete();
+    $return = !! parent::delete();
+
+    if ( $return )
+    {
+      if ( count( $this->afterDelete ) )
+      {
+        foreach ( $this->afterDelete as $method )
+        {
+          $this->$method();
+        }
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
 
