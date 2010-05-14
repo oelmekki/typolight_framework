@@ -855,7 +855,7 @@ abstract class EModel extends Model
       $class = get_class( $this );
       $model = new $class();
 
-      if ( $model->getCount( array( "$attr = ?", $this->$attr ) ) > 0 )
+      if ( $model->findBy( $attr, $this->$attr ) and $model->id != $this->id )
       {
         $message = $this->lang[ $attr . '_uniqueness' ];
         if ( ! strlen( $message ) )
