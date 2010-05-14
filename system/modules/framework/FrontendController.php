@@ -420,6 +420,25 @@ abstract class FrontendController extends Module
   }
 
 
+
+  /**
+   * Default getPage method to retrieve current page for pagination
+   *
+   * @return integer  the page number
+   **/
+  protected function getPage()
+  {
+    $page = $this->Input->get( 'page' );
+    if ( ! $page )
+    {
+      $page = 1;
+    }
+
+    return $page;
+  }
+
+
+
   private function executeBeforeFilters()
   {
     $this->executeFilters( $this->beforeFilters );
