@@ -417,6 +417,7 @@ abstract class FrontendController extends Module
     $pagination->lang       = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'framework_pagination' ];
 
     $this->pagination = $pagination->parse();
+    return $this->pagination;
   }
 
 
