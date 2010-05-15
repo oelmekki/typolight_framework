@@ -1036,6 +1036,21 @@ abstract class EModel extends Model
 
 
   /**
+   * Get errors formatted in an html string.
+   * The default template you can override is emodel_errors.tpl
+   *
+   * @return string   the html error string
+   **/
+  public function getErrors_string()
+  {
+    $template = new FrontendTemplate( 'emodel_errors' );
+    $template->model = $this;
+    return $template->parse();
+  }
+
+
+
+  /**
    * Find all records
    *
    * Return an array of instantiated models.
