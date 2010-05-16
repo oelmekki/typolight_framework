@@ -391,7 +391,7 @@ abstract class FrontendController extends Module
    * @arg string        the route name
    * @arg array         the route parameters
    */
-  protected function preparePagination( $model, $route = null, $routeParams = array() )
+  protected function preparePagination( $model, $route = null, $routeParams = array(), $pageKey = 'page' )
   {
     $page_count = $model->paginate_page_count;
     $page       = $model->paginate_page;
@@ -401,12 +401,12 @@ abstract class FrontendController extends Module
     {
       if ( $route )
       {
-        $links[ $i ] = Route::compose( $route, array_merge( $routeParams, array( 'page' => $i ) ) );
+        $links[ $i ] = Route::compose( $route, array_merge( $routeParams, array( $pageKey => $i ) ) );
       }
 
       else
       {
-        $links[ $i ] = $this->addToUrl( "page=$i" );
+        $links[ $i ] = $this->addToUrl( "$pageKey=$i" );
       }
     }
 
