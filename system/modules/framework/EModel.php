@@ -280,10 +280,17 @@ abstract class EModel extends Model
 
 
   /**
-   * @var array Attributes that are allowed to be set through updateAttributes() and create().
    * If empty, any attribute can be set.
+   * @var array Attributes that are allowed to be set through updateAttributes() and create().
    **/
   protected $filtered_attrs = array();
+
+
+
+  /**
+   * list of attribute that should not contains html
+   **/
+  protected $encodeHtml = array();
 
 
   /**
@@ -636,6 +643,13 @@ abstract class EModel extends Model
         }
       }
     }
+
+
+    foreach ( $this->encodeHtml as $attrToEncode )
+    {
+      $this->$attrToEncode = htmlentities( $this->$attrToEncode );
+    }
+
 
     $this->tstamp = time();
     $this->validate();
