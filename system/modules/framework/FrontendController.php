@@ -49,6 +49,14 @@ abstract class FrontendController extends Module
 
 
   /**
+   * Set a template name in this variable
+   * to bypass the default template generation based
+   * on the scheme mod_ + controllername + _ + actionname
+   **/
+  protected $render;
+
+
+  /**
    * beforeFilters are methods to be executed before actions.
    * Specify an array of method names.
    *
@@ -265,7 +273,7 @@ abstract class FrontendController extends Module
 
     // create the real template
     $faked = (array) $this->Template;
-    $this->Template = new $templateClass( 'mod_' . $this->controller . '_' . $action );
+    $this->Template = new $templateClass( strlen( $this->render ) ? $this->render : 'mod_' . $this->controller . '_' . $action );
     $this->Template->setData( $faked );
 
     $this->Template->lang               = $this->lang;
