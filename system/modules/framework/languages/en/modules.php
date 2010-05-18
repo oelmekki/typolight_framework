@@ -37,4 +37,6 @@ $GLOBALS['TL_LANG']['MOD']['hardRoutes'] = array( 'Hard Routes List', 'This modu
 /**
  * Front end modules
  */
-$GLOBALS['TL_LANG']['FMD']['messages'] = array('Messages', 'Display messages from previous action');
+$GLOBALS['TL_LANG']['FMD']['messages']          = array('Messages', 'Display messages from previous action');
+$GLOBALS['TL_LANG']['FMD']['routedBreadcrumb']  = array('Routed breadcrumb', 'Like breadcrumb, but include the action for FrontendControllers');
+$GLOBALS['TL_LANG']['FMD']['routedNav']         = array('Routed navigation', 'Build a navigation using routes');

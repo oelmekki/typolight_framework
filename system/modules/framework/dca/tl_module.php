@@ -27,7 +27,8 @@
  * @filesource
  */
 
-$GLOBALS['TL_DCA']['tl_module']['palettes']['routedNav'] = 'name,type,headline;routes;align,space,cssID;';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['routedNav']        = 'name,type,headline;routes;align,space,cssID;';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['routedBreadcrumb'] = '{title_legend},name,headline,type;{nav_legend},includeRoot,showHidden;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID,space';
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['routes']  = array(
   'label'                   => &$GLOBALS['TL_LANG']['tl_module']['routes'],

@@ -36,14 +36,15 @@ $GLOBALS[ 'BE_MOD' ][ 'framework' ][ 'hardRoutes' ] = array
   'callback' => 'HardRoutesList',
 ) ;
 
-$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedNav' ]  = 'ModuleRoutedNav';
-$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'messages' ]   = 'ControllerMessages';
-$GLOBALS[ 'BE_FFL' ][ 'paramWizard' ]               = 'ParamWizard' ;  
-$GLOBALS[ 'BE_FFL' ][ 'routesWizard' ]              = 'RoutesWizard' ;  
-$GLOBALS[ 'BE_FFL' ][ 'manyToManyCheckbox' ]        = 'ManyToManyCheckbox' ;  
-$GLOBALS[ 'BE_FFL' ][ 'eFileTree' ]                 = 'WidgetEFileTree' ;  
-$GLOBALS[ 'TL_HOOKS' ][ 'getPageIdFromUrl' ][]      = array( 'Route', 'resolve' );
-$GLOBALS[ 'TL_HOOKS' ][ 'replaceInsertTags' ][]     = array( 'Route', 'insertTags' );
+$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedNav' ]        = 'ModuleRoutedNav';
+$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedBreadcrumb' ] = 'ModuleRoutedBreadcrumb';
+$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'messages' ]         = 'ControllerMessages';
+$GLOBALS[ 'BE_FFL' ][ 'paramWizard' ]                     = 'ParamWizard' ;  
+$GLOBALS[ 'BE_FFL' ][ 'routesWizard' ]                    = 'RoutesWizard' ;  
+$GLOBALS[ 'BE_FFL' ][ 'manyToManyCheckbox' ]              = 'ManyToManyCheckbox' ;  
+$GLOBALS[ 'BE_FFL' ][ 'eFileTree' ]                       = 'WidgetEFileTree' ;  
+$GLOBALS[ 'TL_HOOKS' ][ 'getPageIdFromUrl' ][]            = array( 'Route', 'resolve' );
+$GLOBALS[ 'TL_HOOKS' ][ 'replaceInsertTags' ][]           = array( 'Route', 'insertTags' );
 
 
 /** 

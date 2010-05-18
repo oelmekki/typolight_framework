@@ -75,3 +75,13 @@ $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ] = array(
   'validates_max_length_of'   => '%s doit compter au plus %s lettres',
   'validates_associated'      => '%s doit être associé à %s',
 );
+
+$GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'upload_errors' ] = array( 
+  UPLOAD_ERR_INI_SIZE => 'Le fichier téléchargé excède la taille autorisée par le serveur',
+  UPLOAD_ERR_FORM_SIZE => 'Le fichier téléchargé excède la taille autorisée par l\'application',
+  UPLOAD_ERR_PARTIAL => 'Le fichier n\'a été que partiellement téléchargé',
+  UPLOAD_ERR_NO_FILE => 'Aucun fichier n\'a été téléchargé',
+  UPLOAD_ERR_NO_TMP_DIR => 'Un dossier temporaire est manquant',
+  UPLOAD_ERR_CANT_WRITE => 'Échec de l\'écriture du fichier sur le disque',
+  UPLOAD_ERR_EXTENSION => 'Une extension PHP a arrété l\'envoi de fichier',
+);

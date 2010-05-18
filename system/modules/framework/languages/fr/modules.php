@@ -37,4 +37,6 @@ $GLOBALS['TL_LANG']['MOD']['hardRoutes'] = array( 'Liste des routes en dur', 'Ce
 /**
  * Front end modules
  */
-$GLOBALS['TL_LANG']['FMD']['messages'] = array('Messages', 'Montre les messages passés par l\'action précédente');
+$GLOBALS['TL_LANG']['FMD']['messages']          = array('Messages', 'Montre les messages passés par l\'action précédente');
+$GLOBALS['TL_LANG']['FMD']['routedBreadcrumb']  = array('File d\'ariane routé', 'Comme le fil d\'ariane classique, mais inclu l\'action pour les FrontendControllers');
+$GLOBALS['TL_LANG']['FMD']['routedNav']         = array('Navigation routée', 'Permet de faire une navigation en utilisant des routes');
