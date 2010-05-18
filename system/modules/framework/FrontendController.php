@@ -101,6 +101,7 @@ abstract class FrontendController extends Module
     $this->uncachable[]   = 'template';
     $this->templateClass  = $templateClass;
     $this->lang           = $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ get_class( $this ) ];
+    $this->objModule      = $objModule;
 
     $chunks       = explode( '?', $this->Environment->request );
     $this->isJson = ( substr( $chunks[0], -5 ) == '.json' );
@@ -259,6 +260,7 @@ abstract class FrontendController extends Module
       $this->arrStyle[] = 'margin-bottom:'.$this->arrData['space'][1].'px;';
     }
 
+    $this->cssID = deserialize($this->objModule->cssID, true);
     $this->Template->style    = count($this->arrStyle) ? implode(' ', $this->arrStyle) : '';
     $this->Template->cssID    = strlen($this->cssID[0]) ? ' id="' . $this->cssID[0] . '"' : '';
     $this->Template->class    = trim('mod_' . $this->type . ' ' . $this->cssID[1]);
