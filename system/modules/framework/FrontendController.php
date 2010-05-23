@@ -63,8 +63,8 @@ abstract class FrontendController extends Module
    * If you give a simple string, the method will be executed
    * before every method.
    *
-   * if you give an array, specify the method name as 'method' key
-   * and specified a list of actions as 'except' or 'only' keys.
+   * if you give an array, specify the method name as key
+   * and specify a list of actions as 'except' or 'only' keys.
    * This way, the method will be executed only or at the exception
    * of the actions specified.
    * The value of 'except' and 'only' keys can be the method name
@@ -78,9 +78,9 @@ abstract class FrontendController extends Module
    * example :
    * protected $beforeFilter = array(
    *   'checkCredential',
-   *   array( 'method' => 'getParentId', 'only' => 'create' ),
-   *   array( 'method' => 'getItemId', 'except' => 'index' ),
-   *   array( 'method' => 'importItemJavascript', 'only' => array( 'index', 'show', 'search' ) ),
+   *   'getParentId'          => array( 'only' => 'create' ),
+   *   'getItemId'            => array( 'except' => 'index' ),
+   *   'importItemJavascript' => array( 'only' => array( 'index', 'show', 'search' ) ),
    *   'passSitename',
    * );
    **/
@@ -464,11 +464,11 @@ abstract class FrontendController extends Module
 
   private function executeFilters( $filters )
   {
-    foreach ( $filters as $filter )
+    foreach ( $filters as $key => $filter )
     {
       if ( is_array( $filter ) )
       {
-        $method = $filter[ 'method' ];
+        $method = $key;
 
         if ( is_string( $filter[ 'only' ] ) and $this->action != $filter[ 'only' ] )
         {
