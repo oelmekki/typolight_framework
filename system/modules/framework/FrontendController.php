@@ -225,7 +225,17 @@ abstract class FrontendController extends Module
 
     if ( ! $this->forceRoutedAction and strlen( $action ) and method_exists( $this, $action ) )
     {
-      $this->action = $action;
+      // if the action is not prefixed by 'action_', only authorized it if it is in the $arrActions array
+      if ( method_exists( $this, $action ) and in_array( $action, $this->arrActions ) )
+      {
+        $this->action = $action;
+      }
+
+      // whitelist methods prefixed by 'action_'
+      else if ( method_exists( $this, 'action_' . $action ) )
+      {
+        $this->action = 'action_' . $action;
+      }
     }
 
     if ( $this->isJson and ! in_array( $this->action, $this->sendJson ) )
