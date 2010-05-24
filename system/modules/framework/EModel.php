@@ -19,7 +19,7 @@
  * Software Foundation website at http://www.gnu.org/licenses/.
  *
  * PHP version 5
- * @copyright  Olivier El Mekki, 2009
+ * @copyright  Olivier El Mekki, 2009-2010
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Framework
  * @license    LGPL
@@ -31,7 +31,7 @@
  * Class EModel
  *
  * Enhence the basic Model class
- * @copyright  Olivier El Mekki 2006
+ * @copyright  Olivier El Mekki 2009-2010
  * @author     Olivier El Mekki 
  * @package    Framework
  */
