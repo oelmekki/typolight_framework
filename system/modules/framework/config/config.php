@@ -36,7 +36,7 @@ $GLOBALS[ 'BE_MOD' ][ 'framework' ][ 'hardRoutes' ] = array
   'callback' => 'HardRoutesList',
 ) ;
 
-$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedNav' ]        = 'ModuleRoutedNav';
+$GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedNav' ]        = 'ControllerRoutedNav';
 $GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'routedBreadcrumb' ] = 'ModuleRoutedBreadcrumb';
 $GLOBALS[ 'FE_MOD' ][ 'framework' ][ 'messages' ]         = 'ControllerMessages';
 $GLOBALS[ 'BE_FFL' ][ 'paramWizard' ]                     = 'ParamWizard' ;  

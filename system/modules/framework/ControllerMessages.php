@@ -49,7 +49,7 @@ class ControllerMessages extends FrontendController
   /**
    * Generate module
    */
-  protected function index()
+  protected function action_index()
   {
     $this->Template->messages = $GLOBALS[ 'TL_MSG' ];
   }

@@ -223,19 +223,9 @@ abstract class FrontendController extends Module
     }
 
 
-    if ( ! $this->forceRoutedAction and strlen( $action ) and method_exists( $this, $action ) )
+    if ( ! $this->forceRoutedAction and strlen( $action ) and method_exists( $this, 'action_' . $action ) )
     {
-      // if the action is not prefixed by 'action_', only authorized it if it is in the $arrActions array
-      if ( method_exists( $this, $action ) and in_array( $action, $this->arrActions ) )
-      {
-        $this->action = $action;
-      }
-
-      // whitelist methods prefixed by 'action_'
-      else if ( method_exists( $this, 'action_' . $action ) )
-      {
-        $this->action = 'action_' . $action;
-      }
+      $this->action = $action;
     }
 
     if ( $this->isJson and ! in_array( $this->action, $this->sendJson ) )
@@ -254,7 +244,7 @@ abstract class FrontendController extends Module
    */
   public function compile()
   {
-    $action = $this->action;
+    $action = 'action_' . $this->action;
     $templateClass = $this->templateClass;
 
     // use a fake template for now, just in case of redirection action
@@ -285,7 +275,7 @@ abstract class FrontendController extends Module
 
     // create the real template
     $faked = (array) $this->Template;
-    $this->Template = new $templateClass( strlen( $this->render ) ? $this->render : 'mod_' . $this->controller . '_' . $action );
+    $this->Template = new $templateClass( strlen( $this->render ) ? $this->render : 'mod_' . $this->controller . '_' . $this->action );
     $this->Template->setData( $faked );
 
     $this->Template->lang               = $this->lang;
@@ -368,17 +358,21 @@ abstract class FrontendController extends Module
     $index = $this->controller . '_index';
     $actions = array( $index => (strlen( $this->lang[ $index ] ) ? $this->lang[ $index ] : $index ) );
 
-    foreach ( $this->arrActions as $action )
+    foreach ( get_class_methods( $this ) as $method )
     {
-      $fullname = $this->controller . '_' . $action;
-      if ( strlen( $this->lang[ $fullname ] ) )
+      if ( strpos( $method, 'action_' ) === 0 )
       {
-        $actions[ $fullname ] = $this->lang[ $fullname ];
-      }
+        $action = substr( $method, 7 );
+        $fullname = $this->controller . '_' . $action;
+        if ( strlen( $this->lang[ $fullname ] ) )
+        {
+          $actions[ $fullname ] = $this->lang[ $fullname ];
+        }
 
-      else
-      {
-        $actions[ $fullname ] = $fullname;
+        else
+        {
+          $actions[ $fullname ] = $fullname;
+        }
       }
     }
 

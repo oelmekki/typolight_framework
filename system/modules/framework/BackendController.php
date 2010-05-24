@@ -188,7 +188,7 @@ abstract class BackendController extends BackendModule
     }
 
 
-    if ( strlen( $action ) and method_exists( $this, $action ) )
+    if ( strlen( $action ) )
     {
       // if the action is not prefixed by 'action_', only authorized it if it is in the $arrActions array
       if ( method_exists( $this, $action ) and in_array( $action, $this->arrActions ) )

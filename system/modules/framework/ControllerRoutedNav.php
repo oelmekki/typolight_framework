@@ -28,14 +28,14 @@
 
 
 /**
- * Class ModuleroutedNav
+ * Class ControllerRoutedNav
  *
  * Generate navigation from routes.
  * @copyright  Olivier El Mekki, 2009
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Controller
  */
-class ModuleRoutedNav extends FrontendController
+class ControllerRoutedNav extends FrontendController
 {
   protected $controller = 'framework_routed_nav';
 
@@ -43,7 +43,7 @@ class ModuleRoutedNav extends FrontendController
   /**
    * Index
    */
-  public function index()
+  public function action_index()
   {
     global $objPage;
 
