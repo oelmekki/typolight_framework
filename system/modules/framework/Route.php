@@ -33,12 +33,304 @@
  * @copyright  Olivier El Mekki, 2009 
  * @author     Olivier El Mekki 
  * @package    Model
+ *
+ * Routes are piece of configuration that let you do whatever you want with
+ * urls. Say, you have a "Shop" page, and a "Order" page in this first one.
+ * You would like to have, in your url, mydomain.com/shop/order.html rather
+ * than mydomain.com/order.html. You can do this with a route.
+ *
+ *
+ *
+ * ------------------------------
+ * Routes from configuration file
+ * ------------------------------
+ *
+ * The first method is to use the configuration file of your extension. In
+ * your_extensions/config/config.php, add :
+ * $GLOBALS[ 'TL_ROUTES' ][ 'shop_order' ] = array( 
+ *   'route'      => 'shop/order',
+ *   'method'     => 'GET/POST',
+ *   'resolveTo'  => 'order',
+ * );
+ *
+ * In your template, you can now put :
+ * <a href="<?php echo Route::compose( 'shop_order' ) ?>">Order</a>
+ *
+ * the resolveTo value is the real page alias where the route should lead. The
+ * 'GET/POST' method value say the route match either for a GET or a POST request.
+ * If you don't want it to be resolved for GET, just put 'method' => 'POST' ( and
+ * put 'method' => 'GET' if you don't wnt it to resolv on POST ).
+ * 
+ * If you use a FrontendController, you may want to point to a specific action.
+ * Let say you have a ControllerShop instead, with actions product_list, 
+ * product_show, add_to_cart and order.
+ *
+ * You will put something like this in your config.php :
+ *
+ * $GLOBALS[ 'TL_ROUTES' ][ 'shop_product_list' ] = array( 
+ *   'route'      => 'shop/products/all',
+ *   'method'     => 'GET/POST',
+ *   'staticParams'  => array(
+ *     'action' => 'product_list',
+ *   ),
+ *   'resolveTo'  => 'shop',
+ * );
+ *
+ * $GLOBALS[ 'TL_ROUTES' ][ 'shop_product_show' ] = array( 
+ *   'route'      => 'shop/products/:product_id/show',
+ *   'method'     => 'GET/POST',
+ *   'staticParams'  => array(
+ *     'action' => 'product_show',
+ *   ),
+ *   'resolveTo'  => 'shop',
+ * );
+ *
+ * $GLOBALS[ 'TL_ROUTES' ][ 'shop_add_to_cart' ] = array( 
+ *   'route'      => 'shop/add/product/:product_id',
+ *   'method'     => 'POST',
+ *   'staticParams'  => array(
+ *     'action' => 'add_to_cart',
+ *   ),
+ *   'resolveTo'  => 'shop',
+ * );
+ *
+ * $GLOBALS[ 'TL_ROUTES' ][ 'shop_order' ] = array( 
+ *   'route'      => 'shop/order',
+ *   'method'     => 'GET/POST',
+ *   'staticParams'  => array(
+ *     'action' => 'order',
+ *   ),
+ *   'resolveTo'  => 'shop',
+ * );
+ *
+ * You can pass anything you want as staticParams. It won't be shown in
+ * the url, but you still can retrieve it through $this->Input->get().
+ *
+ * Notice that the shop_add_to_cart route only accept POST method, so you
+ * simply will have a 404 if you try to access it by GET.
+ *
+ * shop_product_show and shop_add_to_cart both use a placeholder, :product_id.
+ * Placeholders are marked by prefixing them with a ':'.
+ * To compose a product show url, we can do :
+ *
+ * Route::compose( 'shop_product_show', array( 'product_id' => 3 ) );
+ *
+ * And in the other way, mydomain.com/shop/products/3/show.html will resolve to the
+ * shop page, with the GET parameter 'action' set to 'product_show' and the GET parameter
+ * 'product_id' set to 3.
+ *
+ * You can use as many placeholder you want, but beware : it's you responsability to check
+ * if the product 3 actually exists, here.
+ *
+ *
+ *
+ * ------------------
+ * Route from backend
+ * ------------------
+ *
+ * If your not working on an extension, you can still use routes from the backend. Use the
+ * "Routes" module in the "Framework" section. You can add there routes in the very similar
+ * way. You should prefer to write routes in a config file everytimes you can, instead,
+ * because handling routes this way means making queries on the database.
+ *
+ * If you don't write an extension, you're likely to want to use routes outside of a template,
+ * too. There are two ways to do this :
+ * - you can use the insert tag {{Route:name:param1=value1:param2=value2}}
+ * - you can use the ControllerRoutedNav to build a navigation upon routes.
  */
 class Route extends EModel
 {
   protected $strTable = "tl_framework_routes" ;
 
+
+
   /**
+   * Find a clean url from a route name
+   *
+   * This method is a mean to compute an url from a route.
+   * You can pass in the params array the parameter the route
+   * expect. For example, if you have a books_show route that is
+   * expressed as : 'books/:book_id/show', you can compose it with :
+   * $href = Route::compose( 'books_show', array( 'book_id' => $book->id ) );
+   *
+   * If your application handles multiple formats ( eg: html, json, xml ),
+   * you can pass the required format as third parameter.
+   * 
+   * @param string the route name
+   * @param mixed optional parameters for the route
+   * @param string the format required
+   * @return string the matching url
+   */
+  public static function compose( $name, $params=array(), $format = 'html' )
+  {
+    if ( $format == 'html' )
+    {
+      $suffix = $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ];
+    }
+
+    else
+    {
+      $suffix = '.' . $format;
+    }
+
+    $route = new Route() ;
+    if ( $route->findBy( 'name', $name ) )
+    {
+      $path        = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
+      $additionals = array();
+
+      foreach ( $params as $param => $value )
+      {
+        if ( strpos( $path, ':' . $param ) !== false )
+        {
+          $path = str_replace( ':' . $param, $value, $path ) ;
+        }
+
+        else
+        {
+          $additionals[ $param ] = $value;
+        }
+      }
+
+      if ( count( $additionals ) )
+      {
+        $addStr = '?';
+        foreach ( $additionals as $param => $value )
+        {
+          if ( strlen( $value ) )
+          {
+            $addStr .= sprintf( '%s=%s&', $param, $value );
+          }
+        }
+
+        $addStr = substr( $addStr, 0, strlen( $addStr ) - 1 );
+      }
+
+      else
+      {
+        $addStr = '';
+      }
+
+      return $path . $suffix . $addStr;
+    }
+
+    else
+    {
+      $paramStr = '';
+
+      if ( count( $params ) )
+      {
+        $paramStr = '?';
+        foreach ( $params as $param => $value )
+        {
+          $paramStr .= $param . '=' . $value . ';';
+        }
+      }
+
+      $page = new FwPage();
+
+      if ( $page->findBy( 'alias', $name ) and $page->accessible )
+      {
+        $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $name;
+        return $path . $suffix . $paramStr;
+      }
+
+      else
+      {
+        $env = Environment::getInstance();
+        $path = $env->url . TL_PATH . '/' . $paramStr;
+        return $path;
+      }
+    }
+  }
+
+
+
+  /**
+   * Just like Route::compose, but let use various routes depending on the current language.
+
+   * Routes should be name as : language_code + '_' + name
+   * ex: fr_home
+   *
+   * You can then do :
+   * $href = Route::composeI18n( 'home' );
+   *
+   * @arg string
+   * @arg mixed
+   * @return string
+   */
+  public static function composeI18n( $name, $params=array(), $format = 'html' )
+  {
+    global $objPage;
+    $name = ( strlen( $objPage->language ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ] ) . '_' . $name;
+    return Route::compose( $name, $params, $format );
+  }
+
+
+
+  /**
+   * Resolve a url to a route.
+   *
+   * Give it an url, and it will try to guess to which page it resolves
+   * ( return the id of the page ).
+   * 
+   * @arg string        the url to resolve
+   * @return integer    the page id
+   */
+  public static function resolveUrl( $url )
+  {
+    // isolate the relative path
+    $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
+        preg_quote( $_SERVER[ 'SERVER_NAME' ], '/' ), 
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], '/' ),
+        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ], '/' )
+    );
+
+    $matches = array();
+    if ( preg_match( $regex, $url, $matches ) )
+    {
+      $url = $matches[2];
+    }
+
+    $arrFragments = explode( '/', $url );
+    $method = ( count( $_POST ) ? 'POST' : 'GET' );
+
+    if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+    {
+      $database = Database::getInstance();
+      $record = $database->prepare( 'select * from tl_framework_cached_routes where route = ? and method = ? limit 1' )
+                         ->execute( $url, $method );
+
+      if ( $record->next() )
+      {
+        return $record->pageId;
+      }
+    }
+
+    $route = new Route();
+    $routes = $route->getAll( "sorting" ) ;
+    $routes = array_merge( $routes, $route->routesFromConf );
+
+    foreach ( $routes as $route )
+    {
+      if ( $fragments = $route->match( $arrFragments ) )
+      {
+        if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
+        {
+          $database->prepare( 'insert into tl_framework_cached_routes( tstamp, route, method, fragments, pageId ) values( ?, ?, ?, ?, ? )' )
+                   ->execute( time(), $url, $method, serialize( $fragments ), $route->pageId );
+        }
+
+        return $route->pageId;
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /*
    * basic stringification
    */
   public function __toString()
@@ -48,7 +340,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Test if the given fragment of url match the route
    * if it does, return the reordered fragments
    * @arg mixed
@@ -149,116 +441,7 @@ class Route extends EModel
 
 
 
-  /**
-   * find a clean url from a route name
-   * @arg string
-   * @arg mixed
-   * @return string
-   */
-  public static function compose( $name, $params=array(), $format = 'html' )
-  {
-    if ( $format == 'html' )
-    {
-      $suffix = $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ];
-    }
-
-    else
-    {
-      $suffix = '.' . $format;
-    }
-
-    $route = new Route() ;
-    if ( $route->findBy( 'name', $name ) )
-    {
-      $path        = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $route->route ;
-      $additionals = array();
-
-      foreach ( $params as $param => $value )
-      {
-        if ( strpos( $path, ':' . $param ) !== false )
-        {
-          $path = str_replace( ':' . $param, $value, $path ) ;
-        }
-
-        else
-        {
-          $additionals[ $param ] = $value;
-        }
-      }
-
-      if ( count( $additionals ) )
-      {
-        $addStr = '?';
-        foreach ( $additionals as $param => $value )
-        {
-          if ( strlen( $value ) )
-          {
-            $addStr .= sprintf( '%s=%s&', $param, $value );
-          }
-        }
-
-        $addStr = substr( $addStr, 0, strlen( $addStr ) - 1 );
-      }
-
-      else
-      {
-        $addStr = '';
-      }
-
-      return $path . $suffix . $addStr;
-    }
-
-    else
-    {
-      $paramStr = '';
-
-      if ( count( $params ) )
-      {
-        $paramStr = '?';
-        foreach ( $params as $param => $value )
-        {
-          $paramStr .= $param . '=' . $value . ';';
-        }
-      }
-
-      $page = new FwPage();
-
-      if ( $page->findBy( 'alias', $name ) and $page->accessible )
-      {
-        $path = ( $GLOBALS['TL_CONFIG']['rewriteURL'] ? '': 'index.php/') . $name;
-        return $path . $suffix . $paramStr;
-      }
-
-      else
-      {
-        $env = Environment::getInstance();
-        $path = $env->url . TL_PATH . '/' . $paramStr;
-        return $path;
-      }
-    }
-  }
-
-
-
-  /**
-   * find a clean url from a route name, internationalized version.
-   * Routes should be name as : language_code + '_' + name
-   * ex: fr_home
-   *
-   * @arg string
-   * @arg mixed
-   * @return string
-   */
-  public static function composeI18n( $name, $params=array(), $format = 'html' )
-  {
-    global $objPage;
-    $name = ( strlen( $objPage->language ) ? $objPage->language : $GLOBALS[ 'TL_LANGUAGE' ] ) . '_' . $name;
-    return Route::compose( $name, $params, $format );
-  }
-
-
-
-  /**
+  /*
    * HOOK for getPageIdFromUrl :
    * parse routes
    * @arg array
@@ -302,66 +485,7 @@ class Route extends EModel
 
 
 
-  /**
-   * Resolve a url to a route
-   * 
-   * @arg string        the url to resolve
-   * @return integer    the page id
-   */
-  public static function resolveUrl( $url )
-  {
-    // isolate the relative path
-    $regex = sprintf( '/^(https?:\/\/%s%s)?\/?(.*?)%s\??/', 
-        preg_quote( $_SERVER[ 'SERVER_NAME' ], '/' ), 
-        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'websitePath' ], '/' ),
-        preg_quote( $GLOBALS[ 'TL_CONFIG' ][ 'urlSuffix' ], '/' )
-    );
-
-    $matches = array();
-    if ( preg_match( $regex, $url, $matches ) )
-    {
-      $url = $matches[2];
-    }
-
-    $arrFragments = explode( '/', $url );
-    $method = ( count( $_POST ) ? 'POST' : 'GET' );
-
-    if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
-    {
-      $database = Database::getInstance();
-      $record = $database->prepare( 'select * from tl_framework_cached_routes where route = ? and method = ? limit 1' )
-                         ->execute( $url, $method );
-
-      if ( $record->next() )
-      {
-        return $record->pageId;
-      }
-    }
-
-    $route = new Route();
-    $routes = $route->getAll( "sorting" ) ;
-    $routes = array_merge( $routes, $route->routesFromConf );
-
-    foreach ( $routes as $route )
-    {
-      if ( $fragments = $route->match( $arrFragments ) )
-      {
-        if ( $GLOBALS[ 'TL_CONFIG' ][ 'cacheRoutes' ] )
-        {
-          $database->prepare( 'insert into tl_framework_cached_routes( tstamp, route, method, fragments, pageId ) values( ?, ?, ?, ?, ? )' )
-                   ->execute( time(), $url, $method, serialize( $fragments ), $route->pageId );
-        }
-
-        return $route->pageId;
-      }
-    }
-
-    return false;
-  }
-
-
-
-  /**
+  /*
    * HOOK for replaceInsertTags :
    * resolve route
    * Insert tag should be formatted as : {{Route:name:param1=value1:param2=value2}}
@@ -393,7 +517,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Let findBy search in the conf file as well
    * @return mixed
    */
@@ -419,7 +543,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Let getAll search in the conf file as well
    * @return mixed
    */
@@ -433,7 +557,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Get routes from the routes config file
    * @return mixed
    */
@@ -470,7 +594,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Return true if a route with the same name exists in the database
    * @return boolean
    */
@@ -490,7 +614,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Return the unserialized static params
    */
   public function getParams()
@@ -500,7 +624,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * get the resolveTo page id if it is an alias
    */
   public function getPageId()
@@ -523,7 +647,7 @@ class Route extends EModel
 
 
 
-  /**
+  /*
    * Purge the route cache of more than one week old records
    */
   public function purgeCache()

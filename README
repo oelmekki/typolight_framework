@@ -5,66 +5,636 @@ Its components are :
 
 - EModel : an enhancement of the basic model class ( with dynamic finders,
   associations, and others )
-
-- ManyToManyCheckbox : a widget to handle many to many associations through
-  join tables.
-
-- Route : a model to handle routing in Typolight.
-
-- HardRoutesList, RoutesWizard, ParamWizard : so helpers module for managing
-  routes in backend.
-
-- Json : a model to handle json response.
-
-- EventBackendModule : a module to build an event driven backend module
-
----------------
-The model layer
----------------
-
-The core Model class of Typolight is underused. It is a singleton, mostly used
-by User and all the sql request are hand coded.
-
-The EModel bring some sugar in this. It redeclares the __construct() function as
-public, it let you manage some associations and brings a dynamic finder.
-
-The many to many association can be handled by to ManyToManyCheckbox.
+- FrontendController : a subclass of Module that let use several various actions
+- BackendController : same thing, but for backend
+- Route : a model to handle routing in Typolight, to use whatever url you want.
 
 
 
----------------
-The route layer
----------------
+------
+EModel
+------
 
-Routes let you have more control on the url. You can define a route name, its params
-and tell where to go when it matches.
+Basics
+------
 
-Routes can be defined in $GLOBALS[ 'TL_ROUTES' ] or in the database, through the route
-backend module.
+A model represent a table in your database. Each model instance is
+a row. This let you interacts with you database as it was simple
+php objects.
 
-RoutedModule should be used instead of Module for frontend modules. It parse the params,
-find what action to launch and which format to send back ( html or json ).
-
-
-------------------
-EventBackendModule
-------------------
-
-This module is an helper for building backend module without dca.
-
-A GET 'action' param can be use to select the method get_THE_VALUE.
-A POST action array param can be used to, letting you launching an
-action by the name of a button, with several button in the same form.
+When you write an EModel, the first thing you have to do is to tell
+which table in the database you want to use.
 
 eg:
-...
-<input type="submit" name="action[delete]" value="delete" />
-<input type="submit" name="action[update]" value="update" />
-...
+Let say you have the table :
 
-Default action is index(). Any other action redirect to index after
-processing if html format is requested ( default ), or die in a json
-response if json format is requested.
+CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `author` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+Here is your EModel :
+
+class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+}
+
+With this simple piece of code, you can know do :
+$mybook = new Book( 10 );            // retrieve the book with id 10
+echo $mybook->title;                 // retrieve the title of this book
+$mybook->description = 'Not so bad'; // change the description ...
+$mybook->save();                     // ... and save it
+
+You can also look for a book by an other field than id :
+$mybook = new Book();
+$mybook->findBy( 'title', "Does androids dream of electric sheeps?" );
+
+Create a new one :
+$mybook = new Book();
+// create will set the data and save the record into the database
+$mybook->create( array( 'title' => 'my very first book', 'author' => 'me' ) )
+
+Or delete it
+$mybook = new Book( 10 );
+$mybook->delete();
+
+You may also want to get the five last books from an author  :
+$book  = new Book();
+$books = $book->getAll( 'created_at desc', array( 'author = ?', $author  ), 5 );
+The first parameter is for the order, the second is the where clause and the last one
+is the limit ( more on this in the getAll() doc ).
+
+Or you may simply want to get all books :
+$book  = new Book(();
+$books = $book->all;
+
+
+Validations
+-----------
+
+But you don't always want to save any value. What if I create two times an entry for the
+same book? I don't want this to happen, so I want a mean to prevent saving if the title
+is already taken.
+
+This is done through validations :
+class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+}
+
+This way, the record won't be saved if an other one already exist with the same title.
+If this happen, you can be aware of it using $book->hasErrors(). It will return true.
+You can retrieve the error aray with $model->errors, or the error on the title attribute
+with $book->errorsOn( 'title' );
+
+To easily report errors to your visitor, you can use : $book->errors_string. That give
+you a well formatted html string ( you can overide the error template through emodel_errors.tpl ).
+
+Beside $validates_uniqueness_of, there are plenty of other validators :
+- $validates_presence_of
+- $validates_format_of
+- $validates_numericality_of
+- $validates_min_length_of
+- $validates_max_length_of
+- $validates_associated
+
+Please report to each one doc for more details.
+
+Finaly, you wan use your own validation logic. Just override the customValidate() method.
+You can set errors using $this->setError( $message, $attribute ). If any error is set,
+the record won't save.
+
+For default validation messages, you can use the $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ <modelClassName> ]
+array to define internationalized messages. See the doc of EModel::validates() for more
+informations.
+
+
+
+Associations
+------------
+
+Now, getting all books if fine, but we would like to have more informations about their
+authors. Instead of giving a string as author field, why not to have a seperate author table?
+
+
+CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `author_id` int(10) unsigned NOT NULL default '0',
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `firstname` varchar(255) NOT NULL default '', 
+  `lastname` varchar(255) NOT NULL default '', 
+  `birthdate` int(10) unsigned NOT NULL default '0',
+  `country` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `bio` text NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+Ok so, I have a $book object, and I can retrieve its author through author_id :
+$author = new Author( $book->author_id );
+But what if I want to retrieve all books from this author?
+
+In fact, we can do a bit better. Consider those EModels :
+class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $belongsTo = array( 'Author' );
+}
+
+class Author extends EModel
+{
+  protected $strTable = 'tl_authors';
+  protected $hasMany  = array( 'Book' );
+}
+
+You can now do this :
+$book    = new Book( 1 );
+$author  = $book->Author();
+
+Or this :
+$author  = new Author( 1 );
+$books   = $author->Book();
+
+This last call return an array of books, because we've said that an author
+hasMany books. We could have used $hasOne instead, if it was a contest where
+authors wan only submit one book.
+
+The key, here, is in the author_id field. When an EModel is said to belongs to
+an other one, it is expected that it has a <the model name lowercase>_id field.
+If not, the pid field is used ( to be compatible with typolight backend parent/child system ).
+
+From the other side, in the Author model, we know that the author hasMany books,
+so we expect the books table to have an author_id, in the same fashion. EModel
+will take care to retrieve and instatiate them for you.
+
+So far, we've seen $belongsTo, $hasMany and $hasOne. There are some more : $hasThrough
+and $manyToMany.
+
+$hasThrough let find a model through an other one. If my author has many books, and
+a book has many reviews, I could put in my Author EModel :
+protected $hasThrough = array( 'Review' => 'Book' );
+
+So, author has reviews through books. And I can use :
+$reviews = $author->Review();
+
+$manyToMany requires a jointure table. Let say we realize that a book may have
+several authors. We can't use author_id in the book table anymore, but we can't use
+either a book_id in the authors table, since they have many books.
+So, we create an other table :
+
+CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `firstname` varchar(255) NOT NULL default '', 
+  `lastname` varchar(255) NOT NULL default '', 
+  `birthdate` int(10) unsigned NOT NULL default '0',
+  `country` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `bio` text NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `author_id` int(10) unsigned NOT NULL default '0',
+  `book_id` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+The models are now :
+class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $manyToMany = array( 'Author' => 'tl_authors_books' );
+}
+
+class Author extends EModel
+{
+  protected $strTable = 'tl_authors';
+  protected $manyToMany = array( 'Book' => 'tl_authors_books' );
+}
+
+We can now use the association the usual way :
+$books   = $author->Book();
+$authors = $book->Author();
+
+
+Finaly, for any association, you can pass the same parameters than for
+getAll(), to filter it :
+
+$good_books = $author->Book( 'rating desc', array( 'rating > ?', $min_score ), 10 );
+
+
+
+Getters and setters
+-------------------
+
+Works like FrontendController.
+
+
+
+Callbacks
+---------
+
+You may want to perform tasks on certains events. Before I save a new book, I want
+to may want to trim its title. There are several hooks to perform such tasks :
+- beforeSave
+- afterSave
+- beforeCreate
+- afterCreate
+- beforeUpdate
+- afterUpdate
+- beforeDelete
+- afterDelete
+
+You can give those array method names to be executed on those events. The method
+must be in the same EModel :
+class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $manyToMany = array( 'Author' => 'tl_authors_books' );
+  protected $beforeSave = array( 'trim_title' );
+
+  protected function trim_title()
+  {
+    if ( ! strlen( $this->title ) )
+    {
+      return false;
+    }
+
+    $this->title = trim( $this->title );
+  }
+}
+
+Notice the return false statement. On each before callback, you can prevent the
+action by returning false. So here, it does the same thing as $validates_presence_of :
+if the title is empty, the record won't be saved.
+
+So, *Create event are only fired on save for new records, *Update are only fired on
+save for existing record and *Save is fired in either case.
+
+
+
+------------------
+FrontendController
+------------------
+
+Basics
+------
+
+A FrontendController is a mean to handle easily several actions
+in a single module. Instead of using a huge amount of Module, or a 
+Module and put a switch in your compile(), like "if action is show, 
+or if action is list, or if action is delete", etc, you can spawn 
+those automatically into several methods.
+
+This make sense used together with the routes, so a single module
+can handle a whole resource, and all its pages, from the visitor
+point of view.
+
+All you have to do is to create your controller class extending
+FrontendController, give a controller name through the protected
+controller attribute, and write your actions, prefixing them by
+'action_'.
+
+Every FrontendController should have a least an action_index action.
+This is the default action if none is specified.
+
+The Template to use is determined by the controller name and the action
+name : 
+'mod_' . <controller_name> . '_' . <action_name>
+
+So, the template for the default action of a books controller would be
+mod_books_index.tpl . Then, if you have a action_show method, the template
+will be mod_books_show.tpl .
+
+You can override the template in an action using $this->render. Set it to
+name of the template you want to render. Don't worry about what you have
+passed to $this->Template, the actual template is render after you runned your
+action, and $this->Template is just a fake object from which template variables
+will be retrieved.
+
+
+
+Before and after filters
+------------------------
+
+There often are some methods you want to call on many actions. For example, to
+edit and delete an image, you want to ensure the person requesting it is actually
+the one that created it. Or you may want to update the last activity timestamp of
+a member after every action.
+To avoid putting the method call in each action, you can use the beforeFilter and
+afterFilter arrays. Each entry can be either a method name ( and the method will be
+called on each action ), or an array with the method name as key. The array can contains
+an 'only' array or an 'except' array, listing the only method names the filter should
+apply on, or the ones it should not.
+
+Additionnaly, there is a shortcut to pass getter values to the template, because this is
+a common task : you can set passSomething as method name, and the template will receive
+$this->something.
+
+e.g.:
+protected beforeFilter = array( 
+  'passCurrentMember',
+  'checkCredentials' => array( 'only' => array( 'edit', 'delete' ) ),
+  'passBook'         => array( 'except' => 'index' ),
+)
+
+
+
+Getters and setters
+-------------------
+
+Just like EModel and BackendController, FrontendController can handle virtual attributes through
+getter and setter methods. Just define a function getSomething() or setSomething( $value ).
+You can then do :
+echo $this->something;
+$this->something = 'foo';
+
+The result is cached, so you don't have to worry about speed issues. If you want 
+to bypass the cache, you can call the method explicitly ( its result won't be cache either ).
+If you want to never cache a virtual attribute, put its name in the $uncachable array.
+
+If you have defined a getter, you have a setter for free ( it will change the cached value ).
+So, write setters only if you want to do special things rather than simply setting the value.
+
+
+
+Flash messages
+--------------
+
+Sometimes, you would like to pass messages from an action to another. For exemple, after a POST
+request, you may want to redirect the visitor somewhere else, to prevent the double post
+through reloading the page. But how to let him know the query was successful if you redirect?
+Instead of settings others actions in order to say "Ok, it's cool" or "No, it's not", you can
+use $this->passMessage(). This method take two parameters : the message and optionnaly the warn
+level ( any string you want, info is used by default ).
+
+In the next action, in any FrontendController, you can retrieve the message through
+$GLOBALS[ 'TL_MSG' ][ <level> ]
+
+To avoid handling it again and again, you can use the ModuleMessage module.
+
+
+
+Languages
+---------
+
+If you are designing a multi language website, accessing $GLOBALS[ 'TL_LANG' ] in deep keys can
+be very time consuming. To make this quicker, a FrontendController is always assigned the content
+of $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ <controllerClassName> ] as $this->lang.
+
+This is passed as is to the template, so you can use $this->lang in the template too.
+
+For every action in your controller, you can define a key in this array, in you language file,
+to give a friendly name. This in mainly used when creating the module in the backend, if you want
+to force an action. The key should be : <controller_name>_<action_name> .
+
+
+
+Forcing an action
+-----------------
+
+If you want to force an action for a specific module, you will have to change the tl_module dca
+in your extension. For exemple, if I have defined in my config.php :
+$GLOBALS[ 'FE_MOD' ][ 'application' ][ 'books' ] = 'ControllerBooks';
+I add this in the tl_module.php dca file :
+$GLOBALS[ 'TL_DCA' ][ 'tl_module' ][ 'palettes' ][ 'books' ] = 'name,type;defaultRoutedAction,forceRoutedAction;';
+
+This way, when I create a new books module, I can check the "force route" checkbox and set the default
+( and thus unique ) route to, eg, 'lastest'. This will only render action_latest for this module.
+No worry if you then create an other module which rely on the action parameter, only the current
+module is forced.
+
+This let you use FrontendControllers in your layout without taking into account the action GET
+parameter.
+
+
+
+But wait, the breadcrumb module show the same page for every single action!
+---------------------------------------------------------------------------
+
+Actually, even if you use routes to show various urls, the controller is on the same page, from
+the Typolight point of view. If you want to use the actions as seperated pages in the breadcrumb,
+use the ModuleRoutedBreadcrumb instead of the default one.
+
+In the same way, you can use ControllerRoutedNav instead of ModuleCustomNavigation if you want
+to point navigation to specifics actions ( but this is more about routes than controllers, here ).
+
+
+
+-----------------
+BackendController
+-----------------
+
+Basics
+------
+
+A BacktendController is a mean to handle easily several actions
+in a single backed module, just like FrontendController does for
+frontend modules. 
+
+Every BackendController should have a least an action_index action.
+This is the default action if none is specified.
+
+The Template to use is determined by the controller name and the action
+name : 
+'be_' . <controller_name> . '_' . <action_name>
+
+So, the template for the default action of a books controller would be
+be_books_index.tpl . Then, if you have a action_show method, the template
+will be be_books_show.tpl .
+
+You can override the template in an action using $this->render. Set it to
+name of the template you want to render. Don't worry about what you have
+passed to $this->Template, the actual template is render after you runned your
+action, and $this->Template is just a fake object from which template variables
+will be retrieved.
+
+
+Before and after filters
+------------------------
+
+Works like FrontendController.
+
+
+
+Getters and setters
+-------------------
+
+Works like FrontendController.
+
+
+
+Flash messages
+--------------
+
+Works like FrontendController.
+
+
+
+Languages
+---------
+
+Works like FrontendController.
+
+
+
+Calling an action from BE_MOD in config.php
+-------------------------------------------
+
+If you use a dca, you may want to use the 'key' key of the BE_MOD
+configuration to call a specific action.
+
+This can be done passing the method name as callSomething to call
+the 'action_something' action. The params, like the dca object,
+will be put in $this->params.
+
+
+
+
+------
+Routes
+------
+
+Routes are piece of configuration that let you do whatever you want with
+urls. Say, you have a "Shop" page, and a "Order" page in this first one.
+You would like to have, in your url, mydomain.com/shop/order.html rather
+than mydomain.com/order.html. You can do this with a route.
+
+Routes from configuration file
+------------------------------
+
+The first method is to use the configuration file of your extension. In
+your_extensions/config/config.php, add :
+$GLOBALS[ 'TL_ROUTES' ][ 'shop_order' ] = array( 
+  'route'      => 'shop/order',
+  'method'     => 'GET/POST',
+  'resolveTo'  => 'order',
+);
+
+In your template, you can now put :
+<a href="<?php echo Route::compose( 'shop_order' ) ?>">Order</a>
+
+the resolveTo value is the real page alias where the route should lead. The
+'GET/POST' method value say the route match either for a GET or a POST request.
+If you don't want it to be resolved for GET, just put 'method' => 'POST' ( and
+put 'method' => 'GET' if you don't wnt it to resolv on POST ).
+
+If you use a FrontendController, you may want to point to a specific action.
+Let say you have a ControllerShop instead, with actions product_list, 
+product_show, add_to_cart and order.
+
+You will put something like this in your config.php :
+
+$GLOBALS[ 'TL_ROUTES' ][ 'shop_product_list' ] = array( 
+  'route'      => 'shop/products/all',
+  'method'     => 'GET/POST',
+  'staticParams'  => array(
+    'action' => 'product_list',
+  ),
+  'resolveTo'  => 'shop',
+);
+
+$GLOBALS[ 'TL_ROUTES' ][ 'shop_product_show' ] = array( 
+  'route'      => 'shop/products/:product_id/show',
+  'method'     => 'GET/POST',
+  'staticParams'  => array(
+    'action' => 'product_show',
+  ),
+  'resolveTo'  => 'shop',
+);
+
+$GLOBALS[ 'TL_ROUTES' ][ 'shop_add_to_cart' ] = array( 
+  'route'      => 'shop/add/product/:product_id',
+  'method'     => 'POST',
+  'staticParams'  => array(
+    'action' => 'add_to_cart',
+  ),
+  'resolveTo'  => 'shop',
+);
+
+$GLOBALS[ 'TL_ROUTES' ][ 'shop_order' ] = array( 
+  'route'      => 'shop/order',
+  'method'     => 'GET/POST',
+  'staticParams'  => array(
+    'action' => 'order',
+  ),
+  'resolveTo'  => 'shop',
+);
+
+You can pass anything you want as staticParams. It won't be shown in
+the url, but you still can retrieve it through $this->Input->get().
+
+Notice that the shop_add_to_cart route only accept POST method, so you
+simply will have a 404 if you try to access it by GET.
+
+shop_product_show and shop_add_to_cart both use a placeholder, :product_id.
+Placeholders are marked by prefixing them with a ':'.
+To compose a product show url, we can do :
+
+Route::compose( 'shop_product_show', array( 'product_id' => 3 ) );
+
+And in the other way, mydomain.com/shop/products/3/show.html will resolve to the
+shop page, with the GET parameter 'action' set to 'product_show' and the GET parameter
+'product_id' set to 3.
+
+You can use as many placeholder you want, but beware : it's you responsability to check
+if the product 3 actually exists, here.
+
+
+
+Route from backend
+------------------
+
+If your not working on an extension, you can still use routes from the backend. Use the
+"Routes" module in the "Framework" section. You can add there routes in the very similar
+way. You should prefer to write routes in a config file everytimes you can, instead,
+because handling routes this way means making queries on the database.
+
+If you don't write an extension, you're likely to want to use routes outside of a template,
+too. There are two ways to do this :
+- you can use the insert tag {{Route:name:param1=value1:param2=value2}}
+- you can use the ControllerRoutedNav to build a navigation upon routes.
+
+
 
 
 ----------------
@@ -73,5 +643,3 @@ Third party libs
 
 The framework module include a copy of :
 - addLiveEvent, by Yannick Croissant
-
-
