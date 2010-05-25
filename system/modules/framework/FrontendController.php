@@ -40,18 +40,64 @@
 
  * A FrontendController is a mean to handle easily several actions
  * in a single module. Instead of using a huge amount of Module, or a 
- * Module and put a switch in your compile(), like "if action is show, 
- * or if action is list, or if action is delete", etc, you can spawn 
- * those automatically into several methods.
+ * Module and put a switch in your compile() or generate(), like "if 
+ * action is show, or if action is list, or if action is delete", etc, 
+ * you can spawn those automatically into several methods.
  *
  * This make sense used together with the routes, so a single module
  * can handle a whole resource, and all its pages, from the visitor
- * point of view.
+ * point of view, but it's still in a single page or module in the backend,
+ * and in a clean single file (don't be afraid of this single file, you
+ * will see the framework extension make it really concise).
  *
  * All you have to do is to create your controller class extending
  * FrontendController, give a controller name through the protected
  * controller attribute, and write your actions, prefixing them by
- * 'action_'.
+ * 'action_'. Here is an example :
+ *
+ * class ControllerBooks extends FrontendController
+ * {
+ *   protected $controller = 'books';
+ * 
+ *   protected function action_index()
+ *   {
+ *     // we use the index action as list for books. So here, we want
+ *     // the ten most recently published books.
+ *     $carbon = new Book();
+ *     $books = $carbon->getAll( 'created_at desc', array( 'published = 1' ), 10 );
+ *
+ *     $this->Template->books = $books;
+ *   }
+ *
+ *   protected function action_show()
+ *   {
+ *     // find a book by its id, passed as GET param
+ *     $book = new Book( $this->Input->get( 'book_id' ) );
+ *    
+ *     $this->checkExists( $book );
+ *     $this->Template->book = $book;
+ *   }
+ *
+ *   protected function action_order()
+ *   {
+ *     $book = new Book( $this->Input->get( 'book_id' ) );
+ *     $this->checkExists( $book );
+ *     $member = new FwMember();
+ *
+ *     if ( $member->toCurrent() and $member->Cart()->add( $book ) )
+ *     {
+ *       $this->Template->success = true;
+ *     }
+ *   }
+ *
+ *   protected function checkExists( Book $book )
+ *   {
+ *     if ( ! $book->id or ! $book->published )
+ *     {
+ *       $this->redirect( 'book-doesnt-exist.html' );
+ *     }
+ *   }
+ * }
  *
  * Every FrontendController should have a least an action_index action.
  * This is the default action if none is specified.
@@ -62,13 +108,36 @@
  *
  * So, the template for the default action of a books controller would be
  * mod_books_index.tpl . Then, if you have a action_show method, the template
- * will be mod_books_show.tpl .
+ * will be mod_books_show.tpl and mod_books_order.tpl for the order action.
+ * Since checkExists isn't an action ( it isn't prefixed by 'action_' ), it
+ * doesn't need a template.
  *
  * You can override the template in an action using $this->render. Set it to
  * name of the template you want to render. Don't worry about what you have
  * passed to $this->Template, the actual template is render after you runned your
  * action, and $this->Template is just a fake object from which template variables
- * will be retrieved.
+ * will be retrieved. So, you can set $this->render at the bottom of your action,
+ * if you want to.
+ *
+ * A action *must* have a template associated (the template file must exist), or 
+ * it will throw an exception.
+ * The only exception for that is actions that always redirect elsewhere.
+ *
+ *
+ *
+ * --------------------------------------------
+ * Ok. So, how do I select which action to run?
+ * --------------------------------------------
+ *
+ * When a FrontendController is generated, it first check if it was asked to render
+ * a single action, whatever is the context ( more on this below, in the "Forcing an
+ * action" section ). If not, it checks to "action" GET parameter. So, if you want to
+ * render a show action, just pass ?action=show as query string in the url. If no action
+ * parameter exists, it will render the 'index' action.
+ *
+ * Selecting action this way is useful, but not very pretty. If you want to use an url
+ * such as "mydomain.com/books/1/show.html" rather than 
+ * "mydomains.com/books.html?action=show&book_id=1", see the  "Route" documentation.
  *
  *
  *
@@ -90,12 +159,71 @@
  * a common task : you can set passSomething as method name, and the template will receive
  * $this->something.
  *
- * e.g.:
- * protected beforeFilter = array( 
- *   'passCurrentMember',
- *   'checkCredentials' => array( 'only' => array( 'edit', 'delete' ) ),
- *   'passBook'         => array( 'except' => 'index' ),
- * )
+ * So, if we take our previous controller :
+ * 
+ * class ControllerBooks extends FrontendController
+ * {
+ *   protected $controller = 'books';
+ *   protected $currentMember;
+ *   protected $book;
+ *
+ *   protected beforeFilter = array( 
+ *     'passCurrentMember',
+ *     'checkExists'          => array( 'only' => array( 'show', 'order' ) ),
+ *     'passBook'             => array( 'except' => 'index' ),
+ *   )
+ * 
+ *   public function generate()
+ *   {
+ *     $this->currentMember = new FwMember();
+ *     $this->currentMember->toCurrent();
+ *     $this->book = new Book( $this->Input->get( 'book_id' ) );
+ *     
+ *     return parent::generate();
+ *   }
+ *
+ *   protected function action_index()
+ *   {
+ *     // we use the index action as list for books. So here, we want
+ *     // the ten most recently published books.
+ *     $carbon = new Book();
+ *     $books = $carbon->getAll( 'created_at desc', array( 'published = 1' ), 10 );
+ *
+ *     $this->Template->books = $books;
+ *   }
+ *
+ *   protected function action_show()
+ *   {
+ *     $this->Template->book = $book;
+ *   }
+ *
+ *   protected function action_order()
+ *   {
+ *     if ( $this->member->toCurrent() and $this->member->Cart()->add( $this->book ) )
+ *     {
+ *       $this->Template->success = true;
+ *     }
+ *   }
+ *
+ *   protected function checkExists()
+ *   {
+ *     if ( ! $this->book->id or ! $this->book->published )
+ *     {
+ *       $this->redirect( 'book-doesnt-exist.html' );
+ *     }
+ *   }
+ * }
+ *
+ * So here, every template is passed the current member, accessible in the template through
+ * $this->currentMember, show and order actions are passed the book retrieve from the book_id
+ * GET param, and a check is runned to see if the book actually exists and is published.
+ *
+ * That saves us a bit of typing, but we could probably do better. We had to override the
+ * generate() method, which is launched for every single actions, just to perform this simple
+ * task.
+ *
+ * Actually, the 'pass*' before filters play well with getters.
+ *
  *
  *
  *
@@ -116,6 +244,67 @@
  * If you have defined a getter, you have a setter for free ( it will change the cached value ).
  * So, write setters only if you want to do special things rather than simply setting the value.
  *
+ * class ControllerBooks extends FrontendController
+ * {
+ *   protected $controller = 'books';
+ *
+ *   protected beforeFilter = array( 
+ *     'passCurrentMember',
+ *     'checkExists'          => array( 'only' => array( 'show', 'order' ) ),
+ *     'passBook'             => array( 'except' => 'index' ),
+ *   )
+ * 
+ *   protected function action_index()
+ *   {
+ *     // we use the index action as list for books. So here, we want
+ *     // the ten most recently published books.
+ *     $carbon = new Book();
+ *     $books  = $carbon->getAll( 'created_at desc', array( 'published = 1' ), 10 );
+ *
+ *     $this->Template->books = $books;
+ *   }
+ *
+ *   protected function action_show()
+ *   {
+ *     $this->Template->book = $book;
+ *   }
+ *
+ *   protected function action_order()
+ *   {
+ *     if ( $this->member->toCurrent() and $this->member->Cart()->add( $this->book ) )
+ *     {
+ *       $this->Template->success = true;
+ *     }
+ *   }
+ *
+ *   protected function checkExists()
+ *   {
+ *     if ( ! $this->book->id or ! $this->book->published )
+ *     {
+ *       $this->redirect( 'book-doesnt-exist.html' );
+ *     }
+ *   }
+ *
+ *   protected function getCurrentMember()
+ *   {
+ *     $currentMember = new FwMember();
+ *     $currentMember->toCurrent();
+ *     return $currentMember;
+ *   }
+ *
+ *   protected function getBook()
+ *   {
+ *     return new Book( $this->Input->get( 'book_id' ) );
+ *   }
+ * }
+ *
+ * Now, the very first time $this->currentMember is written, the getCurrentMember() is called.
+ * Its result is cached and returned every following access to $this->currentMember, so you
+ * can use it any times you want without thinking about sql requests count.
+ *
+ * As passBook is actually calling $this->Template->book = $this->book, you can pass virtual
+ * attribute from a getter to the template without the need of any extra code.
+ *
  *
  *
  * --------------
@@ -134,6 +323,79 @@
  *
  * To avoid handling it again and again, you can use the ModuleMessage module.
  *
+ * In our previous controller, we can use this in order not to have a template for the order action.
+ * Actually, the only thing we want to say is : "The book was added to your cart", or "Sorry, this
+ * book doesn't exist anymore". Giving an whole page just for this is a bit excessive. Here how we
+ * can do it :
+ *
+ * class ControllerBooks extends FrontendController
+ * {
+ *   protected $controller = 'books';
+ *
+ *   protected beforeFilter = array( 
+ *     'passCurrentMember',
+ *     'checkExists'          => array( 'only' => array( 'show', 'order' ) ),
+ *     'passBook'             => array( 'except' => 'index' ),
+ *   )
+ * 
+ *   protected function action_index()
+ *   {
+ *     // we use the index action as list for books. So here, we want
+ *     // the ten most recently published books.
+ *     $carbon = new Book();
+ *     $books  = $carbon->getAll( 'created_at desc', array( 'published = 1' ), 10 );
+ *
+ *     $this->Template->books = $books;
+ *   }
+ *
+ *   protected function action_show()
+ *   {
+ *     $this->Template->book = $book;
+ *   }
+ *
+ *   protected function action_order()
+ *   {
+ *     if ( $this->member->toCurrent() and $this->member->Cart()->add( $this->book ) )
+ *     {
+ *       $this->passMessage( $GLOBALS[ 'TL_LANG' ][ 'TL_MSC' ][ 'ControllerBooks' ][ 'book_added_to_cart' ] );
+ *     }
+ *
+ *     else
+ *     {
+ *       $this->passMessage( $GLOBALS[ 'TL_LANG' ][ 'TL_MSC' ][ 'ControllerBooks' ][ 'cart_error' ], 'error' );
+ *     }
+ *
+ *     // see the route documentation for more explaination on this
+ *     $this->redirect( Route::composeI18n( 'books_show', array( 'book_id' => $book->id ) ) );
+ *   }
+ *
+ *   protected function checkExists()
+ *   {
+ *     if ( ! $this->book->id or ! $this->book->published )
+ *     {
+ *       $this->passMessage( $GLOBALS[ 'TL_LANG' ][ 'TL_MSC' ][ 'ControllerBooks' ][ 'book_doesnt_exist' ], 'error' );
+ *
+ *       // see the route documentation for more explaination on this
+ *       $this->redirect( Route::composeI18n( 'books_index' ) );
+ *     }
+ *   }
+ *
+ *   protected function getCurrentMember()
+ *   {
+ *     $currentMember = new FwMember();
+ *     $currentMember->toCurrent();
+ *     return $currentMember;
+ *   }
+ *
+ *   protected function getBook()
+ *   {
+ *     return new Book( $this->Input->get( 'book_id' ) );
+ *   }
+ * }
+ *
+ * Ok, now we can discard the mod_books_order.tpl template and the book-doesnt-exist page. Just get
+ * a ControllerMessages module somewhere in your layout and it will handle messages for you.
+ *
  *
  *
  * ---------
@@ -150,6 +412,72 @@
  * to give a friendly name. This in mainly used when creating the module in the backend, if you want
  * to force an action. The key should be : <controller_name>_<action_name> .
  *
+ * Now, here is the final version of our book controller :
+ *
+ * class ControllerBooks extends FrontendController
+ * {
+ *   protected $controller = 'books';
+ *
+ *   protected beforeFilter = array( 
+ *     'passCurrentMember',
+ *     'checkExists'          => array( 'only' => array( 'show', 'order' ) ),
+ *     'passBook'             => array( 'except' => 'index' ),
+ *   )
+ * 
+ *   protected function action_index()
+ *   {
+ *     // we use the index action as list for books. So here, we want
+ *     // the ten most recently published books.
+ *     $carbon = new Book();
+ *     $books  = $carbon->getAll( 'created_at desc', array( 'published = 1' ), 10 );
+ *
+ *     $this->Template->books = $books;
+ *   }
+ *
+ *   protected function action_show()
+ *   {
+ *     $this->Template->book = $book;
+ *   }
+ *
+ *   protected function action_order()
+ *   {
+ *     if ( $this->member->toCurrent() and $this->member->Cart()->add( $this->book ) )
+ *     {
+ *       $this->passMessage( $this->lang[ 'book_added_to_cart' ] );
+ *     }
+ *
+ *     else
+ *     {
+ *       $this->passMessage( $this->lang[ 'cart_error' ], 'error' );
+ *     }
+ *
+ *     // see the route documentation for more explaination on this
+ *     $this->redirect( Route::composeI18n( 'books_show', array( 'book_id' => $book->id ) ) );
+ *   }
+ *
+ *   protected function checkExists()
+ *   {
+ *     if ( ! $this->book->id or ! $this->book->published )
+ *     {
+ *       $this->passMessage( $this->lang[ 'book_doesnt_exist' ], 'error' );
+ *
+ *       // see the route documentation for more explaination on this
+ *       $this->redirect( Route::composeI18n( 'books_index' ) );
+ *     }
+ *   }
+ *
+ *   protected function getCurrentMember()
+ *   {
+ *     $currentMember = new FwMember();
+ *     $currentMember->toCurrent();
+ *     return $currentMember;
+ *   }
+ *
+ *   protected function getBook()
+ *   {
+ *     return new Book( $this->Input->get( 'book_id' ) );
+ *   }
+ * }
  *
  *
  * -----------------
