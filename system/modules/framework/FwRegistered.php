@@ -36,6 +36,11 @@
  */
 abstract class FwRegistered extends EModel
 {
+  /**
+   * Retrieve group names for this user
+   *
+   * @return array the list of group names
+   **/
   public function getGroupNames()
   {
     $groups = deserialize( $this->groups );
@@ -67,12 +72,29 @@ abstract class FwRegistered extends EModel
   }
 
 
+
+  /**
+   * Tell if the user belongs to a give group
+   *
+   * @param string the group name to test
+   * @return boolean
+   **/
   public function hasGroup( $group_name )
   {
     return in_array( $group_name, $this->groupNames );
   }
 
 
+
+  /**
+   * Tell if the user belongs to a set of groups.
+   *
+   * For this to be successful, the user as to belongs
+   * to each group passed in the param array.
+   *
+   * @param array the list of group names to test
+   * @return boolean
+   **/
   public function hasGroups( $group_names )
   {
     foreach ( $group_names as $group_name )
@@ -84,5 +106,28 @@ abstract class FwRegistered extends EModel
     }
 
     return true;
+  }
+
+
+
+  /**
+   * Turn the model to the logged user
+   *
+   * Return false if the visitor isn't logged in,
+   * true otherwise.
+   *
+   * @return boolean
+   **/
+  protected function toCurrent()
+  {
+    $class  = $this->legacy;
+    $legacy = $class::getInstance();
+    if ( $legacy->id )
+    {
+      $this->found = $legacy->getData();
+      return true;
+    }
+
+    return false;
   }
 }

@@ -38,5 +38,5 @@ class FwMember extends FwRegistered
 {
   protected $strTable     = "tl_member" ;
   protected $group_table  = "tl_member_group";
+  protected $legacy       = 'FrontendUser';
 }
-
