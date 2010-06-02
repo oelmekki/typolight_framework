@@ -1,0 +1,16 @@
+This is the framework module for Typolight. It aims to make the life of
+developpers coming from Rails or Symfony easier.
+
+h2. Documentation :
+
+Framework components are :
+
+* "EModel":http://wiki.github.com/oelmekki/typolight_framework/emodel : an enhancement of the basic model class ( with dynamic finders,
+  associations, and others )
+* "FrontendController":http://wiki.github.com/oelmekki/typolight_framework/frontendcontroller : a subclass of Module that let use several various actions
+* "BackendController":http://wiki.github.com/oelmekki/typolight_framework/backendcontroller : same thing, but for backend
+* "Route":http://wiki.github.com/oelmekki/typolight_framework/route : a model to handle routing in Typolight, to use whatever url you want.
+
+h2. Third party libs
+
+The framework module include a copy of addLiveEvent, by Yannick Croissant

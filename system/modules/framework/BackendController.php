@@ -34,75 +34,7 @@
  * @author     Olivier El Mekki 
  * @package    Controller
  *
- * ------
- * Basics
- * ------
-
- * A BacktendController is a mean to handle easily several actions
- * in a single backed module, just like FrontendController does for
- * frontend modules. 
- *
- * Every BackendController should have a least an action_index action.
- * This is the default action if none is specified.
- *
- * The Template to use is determined by the controller name and the action
- * name : 
- * 'be_' . <controller_name> . '_' . <action_name>
- *
- * So, the template for the default action of a books controller would be
- * be_books_index.tpl . Then, if you have a action_show method, the template
- * will be be_books_show.tpl .
- *
- * You can override the template in an action using $this->render. Set it to
- * name of the template you want to render. Don't worry about what you have
- * passed to $this->Template, the actual template is render after you runned your
- * action, and $this->Template is just a fake object from which template variables
- * will be retrieved.
- *
- *
- * ------------------------
- * Before and after filters
- * ------------------------
- *
- * Works like FrontendController.
- *
- *
- *
- * -------------------
- * Getters and setters
- * -------------------
- *
- * Works like FrontendController.
- *
- *
- *
- * --------------
- * Flash messages
- * --------------
- *
- * Works like FrontendController.
- *
- *
- *
- * ---------
- * Languages
- * ---------
- *
- * Works like FrontendController.
- *
- *
- *
- * -------------------------------------------
- * Calling an action from BE_MOD in config.php
- * -------------------------------------------
- *
- * If you use a dca, you may want to use the 'key' key of the BE_MOD
- * configuration to call a specific action.
- *
- * This can be done passing the method name as callSomething to call
- * the 'action_something' action. The params, like the dca object,
- * will be put in $this->params.
- *
+ * For the documentation, see : http://wiki.github.com/oelmekki/typolight_framework/backendcontroller
  */
 abstract class BackendController extends BackendModule
 {

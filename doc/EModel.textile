@@ -1,0 +1,288 @@
+h2(#basics). Basics
+
+A model represent a table in your database. Each model instance is a row. This let you interacts with you database as it was simple php objects. 
+
+It is derivated from the core Model class, which can't directly be used as we'll see, because it's a singleton. I also add to Model :
+* enhanced finders
+* "associations":#associations
+* "validations":#validations
+* "callbacks":#callbacks
+
+When you write an EModel, the first thing you have to do is to tell which table in the database you want to use.
+
+Let say you have the table :
+
+
+bc. CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `author` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+Here is your EModel :
+
+bc. class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+}
+
+With this simple piece of code, you can now do :
+
+bc. $mybook = new Book( 10 );            // retrieve the book with id 10
+echo $mybook->title;                 // retrieve the title of this book
+$mybook->description = 'Not so bad'; // change the description ...
+$mybook->save();                     // ... and save it
+
+You can also look for a book by an other field than id :
+
+bc. $mybook = new Book();
+$mybook->findBy( 'title', "Does androids dream of electric sheeps?" );
+
+Create a new one :
+
+bc. $mybook = new Book();
+// create will set the data and save the record into the database
+$mybook->create( array( 'title' => 'my very first book', 'author' => 'me' ) )
+
+Or delete it
+
+bc. $mybook = new Book( 10 );
+$mybook->delete();
+
+You may also want to get the five last books from an author  :
+
+bc. $book  = new Book();
+$books = $book->getAll( 'created_at desc', array( 'author = ?', $author  ), 5 );
+
+The first parameter is for the order, the second is the where clause and the last one is the limit ( more on this in the getAll() doc ).
+
+Or you may simply want to get all books :
+
+bc. $book  = new Book(();
+$books = $book->all;
+
+
+h2(#validations). Validations
+
+But you don't always want to save any value. What if I create two times an entry for the same book? I don't want this to happen, so I want a mean to prevent saving if the title is already taken.
+
+This is done through validations :
+
+bc. class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+}
+
+This way, the record won't be saved if an other one already exists with the same title.  If this happens, you can be aware of it using $book->hasErrors(). It will return true.  You can retrieve the error array with $model->errors, or the error on the title attribute with $book->errorsOn( 'title' );
+
+To easily report errors to your visitor, you can use : $book->errors_string. That gives you a well formatted html string ( you can overide the error template through emodel_errors.tpl ).
+
+Beside $validates_uniqueness_of, there are plenty of other validators :
+* $validates_presence_of
+* $validates_format_of
+* $validates_numericality_of
+* $validates_min_length_of
+* $validates_max_length_of
+* $validates_associated
+
+Please refer to each one doc for more details.
+
+Finaly, you may want use your own validation logic. Just override the customValidate() method.  You can set errors using $this->setError( $message, $attribute ). If any error is set, the record won't save.
+
+For default validation messages, you can use the $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ <modelClassName> ] array to define internationalized messages. See the doc of EModel::validates() for more informations.
+
+
+
+h2(#associations). Associations
+
+Now, getting all books if fine, but we would like to have more informations about their authors. Instead of giving a string as author field, why not to have a seperated author table?
+
+
+bc..  CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `author_id` int(10) unsigned NOT NULL default '0',
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `firstname` varchar(255) NOT NULL default '', 
+  `lastname` varchar(255) NOT NULL default '', 
+  `birthdate` int(10) unsigned NOT NULL default '0',
+  `country` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `bio` text NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+p. Ok so, I have a $book object, and I can retrieve its author through author_id :
+
+bc. $author = new Author( $book->author_id );
+
+But what if I want to retrieve all books from this author?
+
+In fact, we can do a bit better. Consider those EModels :
+
+bc.. class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $belongsTo = array( 'Author' );
+}
+
+class Author extends EModel
+{
+  protected $strTable = 'tl_authors';
+  protected $hasMany  = array( 'Book' );
+}
+
+p. You can now do this :
+
+bc. $book    = new Book( 1 );
+$author  = $book->Author();
+
+Or this :
+
+bc. $author  = new Author( 1 );
+$books   = $author->Book();
+
+This last call return an array of books, because we've said that an author hasMany books. We could have used $hasOne instead, if it was a contest where authors can only submit one book.
+
+The key, here, is in the author_id field. When an EModel is said to belongs to an other one, it is expected that it has a <the model name lowercase>_id field.  If not, the pid field is used ( to be compatible with typolight backend parent/child system ).
+
+From the other side, in the Author model, we know that the author hasMany books, so we expect the books table to have an author_id, in the same fashion. EModel will take care to retrieve and instatiate them for you.
+
+So far, we've seen $belongsTo, $hasMany and $hasOne. There are some more : $hasThrough and $manyToMany.
+
+$hasThrough let find a model through an other one. If my author has many books, and a book has many reviews, I could put in my Author EModel :
+
+bc. protected $hasThrough = array( 'Review' => 'Book' );
+
+So, author has reviews through books. And I can use :
+
+bc. $reviews = $author->Review();
+
+$manyToMany requires a jointure table. Let say we realize that a book may have several authors. We can't use author_id in the book table anymore, but we can't use either a book_id in the authors table, since they have many books.
+
+So, we create an other table :
+
+bc.. CREATE TABLE `tl_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `title` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `description` text NULL,
+  `rating` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `created_at` int(10) unsigned NOT NULL default '0',
+  `firstname` varchar(255) NOT NULL default '', 
+  `lastname` varchar(255) NOT NULL default '', 
+  `birthdate` int(10) unsigned NOT NULL default '0',
+  `country` varchar(255) NOT NULL default '', 
+  `imageSRC` varchar(255) NOT NULL default '', 
+  `bio` text NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tl_authors_books` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tstamp` int(10) unsigned NOT NULL default '0',
+  `author_id` int(10) unsigned NOT NULL default '0',
+  `book_id` int(10) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+p. The models are now :
+
+bc.. class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $manyToMany = array( 'Author' => 'tl_authors_books' );
+}
+
+class Author extends EModel
+{
+  protected $strTable = 'tl_authors';
+  protected $manyToMany = array( 'Book' => 'tl_authors_books' );
+}
+
+p. We can now use the association the usual way :
+
+bc. $books   = $author->Book();
+$authors = $book->Author();
+
+
+Finaly, for any association, you can pass the same parameters than for getAll(), to filter it :
+
+bc. $good_books = $author->Book( 'rating desc', array( 'rating > ?', $min_score ), 10 );
+
+
+
+h2(#getters-setters). Getters and setters
+
+Works like FrontendController.
+
+
+
+h2(#callbacks). Callbacks
+
+You may want to perform tasks on certains events. Before I save a new book, I may want to trim its title. There are several hooks to perform such tasks :
+* beforeSave
+* afterSave
+* beforeCreate
+* afterCreate
+* beforeUpdate
+* afterUpdate
+* beforeDelete
+* afterDelete
+
+You can give those arrays method names to be executed on those events. The method must be in the same EModel :
+
+bc.. class Book extends EModel
+{
+  protected $strTable = 'tl_books';
+  protected $validates_uniqueness_of = array( 'title' );
+  protected $manyToMany = array( 'Author' => 'tl_authors_books' );
+  protected $beforeSave = array( 'trim_title' );
+
+  protected function trim_title()
+  {
+    if ( ! strlen( $this->title ) )
+    {
+      return false;
+    }
+
+    $this->title = trim( $this->title );
+  }
+}
+
+p. Notice the return false statement. On each before callback, you can prevent the action by returning false. So here, it does the same thing as $validates_presence_of : if the title is empty, the record won't be saved.
+
+So, create event are only fired on save for new records, update are only fired on save for existing record and save is fired in either case.
+
+
+h2(#next). What's next?
+
+Now you understand EModel, see [[FrontendController]].
