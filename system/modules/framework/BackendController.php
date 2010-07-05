@@ -274,7 +274,8 @@ abstract class BackendController extends BackendModule
       $rest        = substr( $method, 1 );
       $method      = strtolower( $firstLetter ) . $rest;
 
-      $this->Input->setGet( 'act', $method );
+      $this->action = $method;
+
       if ( $params )
       {
         $this->params = $params;
@@ -381,18 +382,6 @@ abstract class BackendController extends BackendModule
     }
 
 
-    // Fix referer issue on keyed actions
-    $session      = $this->Session->getData();
-    $httpReferer  = ampersand( $this->Environment->httpReferer, true );
-    $arrReferer   = parse_url( $httpReferer );
-    $referer      = $arrReferer[ 'path' ] . ( strlen( $arrReferer[ 'query' ] ) ? '?' . $arrReferer[ 'query' ] : '' );
-
-    if ( $this->Input->get( 'key' ) and $referer != $session[ 'referer' ][ 'current' ] )
-    {
-       $session['referer']['last']    = $session['referer']['current'];                                                                                                                                                          
-       $session['referer']['current'] = $referer;
-       $this->Session->setData( $session );
-    }
 
     $session = $this->Session->getData();
 
@@ -404,12 +393,32 @@ abstract class BackendController extends BackendModule
     }
   }
 
+  public function __destruct()
+  {
+    if ( strlen( $this->action ) and $this->wrap )
+    {
+      // Fix referer issue on keyed actions
+      $session      = $this->Session->getData();
+      $httpReferer  = ampersand( $this->Environment->httpReferer, true );
+      $arrReferer   = parse_url( $httpReferer );
+      $referer      = $arrReferer[ 'path' ] . ( strlen( $arrReferer[ 'query' ] ) ? '?' . $arrReferer[ 'query' ] : '' );
+
+      if ( $this->Input->get( 'key' ) and $referer != $session[ 'referer' ][ 'current' ] )
+      {
+         $session['referer']['last']    = $session['referer']['current'];                                                                                                                                                          
+         $session['referer']['current'] = $referer;
+         $this->Session->setData( $session );
+      }
+    }
+  }
+
 
 
   public function generate()
   {
+    $action = ( strlen( $this->action ) ? $this->action : $this->Input->get( 'act' ) );
     $this->action = 'index';
-    $action = $this->Input->get( 'act' );
+
     if ( ! strlen( $action ) and strlen( $action = $this->Input->post( 'act' ) ) )
     {
       $action = array_search( $action, $this->lang );
