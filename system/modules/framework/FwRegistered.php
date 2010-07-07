@@ -107,27 +107,4 @@ abstract class FwRegistered extends EModel
 
     return true;
   }
-
-
-
-  /**
-   * Turn the model to the logged user
-   *
-   * Return false if the visitor isn't logged in,
-   * true otherwise.
-   *
-   * @return boolean
-   **/
-  protected function toCurrent()
-  {
-    $class  = $this->legacy;
-    $legacy = $class::getInstance();
-    if ( $legacy->id )
-    {
-      $this->found = $legacy->getData();
-      return true;
-    }
-
-    return false;
-  }
 }

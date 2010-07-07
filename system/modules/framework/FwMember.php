@@ -38,5 +38,25 @@ class FwMember extends FwRegistered
 {
   protected $strTable     = "tl_member" ;
   protected $group_table  = "tl_member_group";
-  protected $legacy       = 'FrontendUser';
+
+
+  /**
+   * Turn the model to the logged user
+   *
+   * Return false if the visitor isn't logged in,
+   * true otherwise.
+   *
+   * @return boolean
+   **/
+  protected function toCurrent()
+  {
+    $legacy = FrontendUser::getInstance();
+    if ( $legacy->id )
+    {
+      $this->found = $legacy->getData();
+      return true;
+    }
+
+    return false;
+  }
 }
