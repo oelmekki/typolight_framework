@@ -50,6 +50,6 @@ abstract class FwGroup extends EModel
     $class  = $this->userClass;
     $carbon = new $class();
     // absolute horror, thx using serialized fields
-    return $carbon->getAll( 'id', array( 'groups like \'%"?"%\'', $this->id ) );
+    return $carbon->getAll( 'id', array( 'groups like \'%"' . $this->id . '"%\'' ) );
   }
 }
