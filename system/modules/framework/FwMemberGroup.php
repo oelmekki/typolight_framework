@@ -36,7 +36,7 @@
  */
 class FwMemberGroup extends FwGroup
 {
-  protected $strTable   = "tl_user_group";
+  protected $strTable   = "tl_member_group";
   protected $userClass  = "FwMember";
 
   public function getMembers()
