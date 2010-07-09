@@ -48,7 +48,7 @@ class FwUser extends FwRegistered
    *
    * @return boolean
    **/
-  protected function toCurrent()
+  public function toCurrent()
   {
     $legacy = BackendUser::getInstance();
     if ( $legacy->id )

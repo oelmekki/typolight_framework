@@ -48,7 +48,7 @@ class FwMember extends FwRegistered
    *
    * @return boolean
    **/
-  protected function toCurrent()
+  public function toCurrent()
   {
     $legacy = FrontendUser::getInstance();
     if ( $legacy->id )
