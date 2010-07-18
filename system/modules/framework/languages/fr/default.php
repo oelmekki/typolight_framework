@@ -50,19 +50,23 @@ $GLOBALS['TL_LANG']['MSC']['framework_pagination'] = array(
 
 
 $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
-  'noRoute'       => 'Pas de routes pour l\instant',
-  'inDatabase'    => 'présente dans la base de donnée',
-  'none'          => 'Aucun',
-  'definition'    => 'Définition',
-  'resolveTo'     => 'Dirige vers',
-  'staticParams'  => 'Paramètres statiques',
-  'method'        => 'Quelle method correspond à cette route?',
-  'true'          => 'Oui',
-  'false'         => 'Non',
-  'loadInDb'      => 'charger dans la base de donnée',
-  'loadAll'       => 'Charger toutes les routes dans la base de donnée',
-  'toggle-show'   => 'Voir',
-  'toggle-hide'   => 'Cacher',
+  'noRoute'             => 'Pas de routes pour l\instant',
+  'inDatabase'          => 'présente dans la base de donnée',
+  'none'                => 'Aucun',
+  'definition'          => 'Définition',
+  'resolveTo'           => 'Dirige vers',
+  'staticParams'        => 'Paramètres statiques',
+  'method'              => 'Quelle method correspond à cette route?',
+  'true'                => 'Oui',
+  'false'               => 'Non',
+  'loadInDb'            => 'charger dans la base de donnée',
+  'loadAll'             => 'Charger toutes les routes dans la base de donnée',
+  'toggle-show'         => 'Voir',
+  'toggle-hide'         => 'Cacher',
+  'route_loaded'        => 'La route a été chargée dans la base de donnée',
+  'route_not_loaded'    => 'La route n\'a pu être chargée dans la base de donnée',
+  'routes_loaded'       => 'Les routes ont été chargées dans la base de donnée',
+  'routes_not_loaded'   => 'Les routes n\'ont pu être chargées dans la base de donnée',
 );
 
 

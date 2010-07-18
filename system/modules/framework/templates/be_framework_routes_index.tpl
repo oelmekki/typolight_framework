@@ -1,6 +1,17 @@
 <div id="mod_hardRoutesList" class="block">
+  <div class="messages">
+    <?php foreach ( $this->messages as $level => $messages ) : ?>
+    <div class="message <?php echo $level ?>">
+      <?php foreach ( $messages as $i => $message ) : ?>
+      <?php echo $message ?>
+      <?php if ( $i + 1 < count( $messages ) ) : ?><br /><?php endif ?>
+      <?php endforeach ?>
+    </div>
+    <?php endforeach ?>
+  </div><!-- .messages -->
+
   <?php if ( count( $this->routes ) ) : ?>
-  <form action="<?php echo $this->pagename ?>" method="post">
+  <form action="<?php echo $this->Environment->request ?>" method="post">
     <div id="routes-list">
       <?php foreach ( $this->routes as $index => $route ) : ?>
       <div class="route <?php echo ( $route->inDatabase ? 'inDatabase' : 'notInDatabase' ) ?>">
@@ -26,13 +37,13 @@
           <div class="method"><?php echo $this->lang[ 'method' ] ?> : <?php echo $route->method ?></div>
 
           <?php if ( ! $route->inDatabase ) : ?>
-          <p class="load"><a href="<?php echo $this->pagename ?>&action=load_route&routeIndex=<?php echo $index ?>" class="load-link"><?php echo $this->lang[ 'loadInDb' ] ?></a></p>
+          <p class="load"><a href="<?php echo $this->Environment->request ?>&act=load_route&routeIndex=<?php echo $index ?>" class="load-link"><?php echo $this->lang[ 'loadInDb' ] ?></a></p>
           <?php endif ?>
         </div><!-- toggable-body -->
       </div><!-- route -->
       <?php endforeach ?>
     </div>
-    <p class="button-line"><input type="submit" name="action[load_all_routes]" value="<?php echo $this->lang[ 'loadAll' ] ?>" /></p>
+    <p class="button-line"><input type="submit" name="act[load_all_routes]" value="<?php echo $this->lang[ 'loadAll' ] ?>" /></p>
   </form>
 
   <?php else : ?>

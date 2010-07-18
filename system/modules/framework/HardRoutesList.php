@@ -35,13 +35,13 @@
  * @author     Olivier El Mekki <olivier@el-mekki.com>
  * @package    Controller
  */
-class HardRoutesList extends EventBackendModule
+class HardRoutesList extends BackendController
 {
   /**
    * Template
    * @var string
    */
-  protected $strTemplate = 'be_framework_route_list';
+  protected $controller = 'framework_routes';
 
 
 
@@ -49,7 +49,7 @@ class HardRoutesList extends EventBackendModule
    * Generate the widget and return it as string
    * @return string
    */
-  protected function index()
+  protected function action_index()
   {
     $GLOBALS[ 'TL_JAVASCRIPT' ][] = 'system/modules/framework/js/Toggable.js';
     $GLOBALS[ 'TL_CSS' ][] = 'system/modules/framework/css/Toggable.css';
@@ -57,7 +57,8 @@ class HardRoutesList extends EventBackendModule
     $GLOBALS[ 'TL_CSS' ][] = 'system/modules/framework/css/backend/HardRoutesList.css';
     $route = new Route();
     $routes = $route->routesFromConf;
-    $this->Template->routes = $routes;
+    $this->Template->routes   = $routes;
+    $this->Template->messages = ( ( is_array( $GLOBALS[ 'TL_MSG' ] ) and count( $GLOBALS[ 'TL_MSG' ] ) ) ? $GLOBALS[ 'TL_MSG' ] : array() );
   }
 
 
@@ -65,7 +66,7 @@ class HardRoutesList extends EventBackendModule
   /**
    * Load a route in database
    */
-  protected function get_load_route()
+  protected function action_load_route()
   {
     $this->sendJson = true;
     $result = false;
@@ -85,6 +86,9 @@ class HardRoutesList extends EventBackendModule
     {
       $this->Json->result = $result;
     }
+
+    $this->passMessage( ( $result ? $this->lang[ 'route_loaded' ] : $this->lang[ 'route_not_loaded' ] ) );
+    $this->redirect( 'typolight/main.php?do=hardRoutes' );
   }
 
 
@@ -92,17 +96,25 @@ class HardRoutesList extends EventBackendModule
   /**
    * Load all routes in database
    */
-  protected function post_load_all_routes()
+  protected function action_load_all_routes()
   {
-    $route = new Route();
+    $route    = new Route();
+    $hasError = false;
+
     foreach ( $route->routesFromConf as $route )
     {
       if ( ! $route->inDatabase )
       {
         $route->resolveTo = $route->pageId;
-        $route->save();
+        if ( ! $route->save() )
+        {
+          $hasError = true;
+        }
       }
     }
+
+    $this->passMessage( ( $hasError ? $this->lang[ 'routes_not_loaded' ] : $this->lang[ 'routes_loaded' ] ) );
+    $this->redirect( 'typolight/main.php?do=hardRoutes' );
   }
 }
 

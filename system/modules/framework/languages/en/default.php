@@ -50,19 +50,23 @@ $GLOBALS['TL_LANG']['MSC']['framework_pagination'] = array(
 
 
 $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'HardRoutesList' ] = array(
-  'noRoute'       => 'Pas de routes pour l\instant',
-  'inDatabase'    => 'exists in database',
-  'none'          => 'None',
-  'definition'    => 'Definition',
-  'resolveTo'     => 'Resolve to',
-  'staticParams'  => 'Static params',
-  'method'        => 'Which method match this route?',
-  'true'          => 'Yes',
-  'false'         => 'No',
-  'loadInDb'      => 'load in database',
-  'loadAll'       => 'Load all routes in database',
-  'toggle-show'   => 'Show',
-  'toggle-hide'   => 'Hide',
+  'noRoute'             => 'Pas de routes pour l\instant',
+  'inDatabase'          => 'exists in database',
+  'none'                => 'None',
+  'definition'          => 'Definition',
+  'resolveTo'           => 'Resolve to',
+  'staticParams'        => 'Static params',
+  'method'              => 'Which method match this route?',
+  'true'                => 'Yes',
+  'false'               => 'No',
+  'loadInDb'            => 'load in database',
+  'loadAll'             => 'Load all routes in database',
+  'toggle-show'         => 'Show',
+  'toggle-hide'         => 'Hide',
+  'route_loaded'        => 'The route has been loaded in the database',
+  'route_not_loaded'    => 'The route can\'t be loaded in the database',
+  'routes_loaded'       => 'The routes has been loaded in the database',
+  'routes_not_loaded'   => 'The routes can\'t be loaded in the database',
 );
 
 $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'EModel' ] = array(
