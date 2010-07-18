@@ -419,9 +419,11 @@ abstract class BackendController extends BackendModule
     $action = ( strlen( $this->action ) ? $this->action : $this->Input->get( 'act' ) );
     $this->action = 'index';
 
-    if ( ! strlen( $action ) and strlen( $action = $this->Input->post( 'act' ) ) )
+    $posted = $this->Input->post( 'act' );
+    if ( ! strlen( $action ) and is_array( $posted ) and count( $posted ) )
     {
-      $action = array_search( $action, $this->lang );
+      $keys   = array_keys( $posted );
+      $action = $keys[0];
     }
 
 
@@ -430,6 +432,7 @@ abstract class BackendController extends BackendModule
       $this->action = $action;
     }
 
+    error_log( $this->action );
     if ( $this->isJson and ! in_array( $this->action, $this->sendJson ) )
     {
       return '';
