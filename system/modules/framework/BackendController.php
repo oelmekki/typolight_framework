@@ -432,7 +432,6 @@ abstract class BackendController extends BackendModule
       $this->action = $action;
     }
 
-    error_log( $this->action );
     if ( $this->isJson and ! in_array( $this->action, $this->sendJson ) )
     {
       return '';

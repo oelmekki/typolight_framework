@@ -51,69 +51,38 @@ class ParamWizard extends Widget
 	protected $strTemplate = 'be_widget';
 
 
-	/**
-	 * Add specific attributes
-	 * @param string
-	 * @param mixed
-	 */
-	public function __set($strKey, $varValue)
-	{
-		switch ($strKey)
-		{
-			case 'value':
-				$this->varValue = deserialize($varValue);
-				break;
+        public function __get( $key )
+        {
+          switch ( $key ) 
+          {
+            case 'values':
+              $values = deserialize( $this->varValue );
+              $return = array();
 
-			case 'mandatory':
-				$this->arrConfiguration['mandatory'] = $varValue ? true : false;
-				break;
+              foreach ( $values as $key => $value ) 
+              {
+                $return[] = array( 'param' => $key, 'value' => $value );
+              }
 
-			case 'maxlength':
-				$this->arrAttributes[$strKey] = ($varValue > 0) ? $varValue : '';
-				break;
-
-			default:
-				parent::__set($strKey, $varValue);
-				break;
-		}
-	}
+              return $return;
+              break;
+            
+            default:
+              return parent::__get( $key );
+              break;
+          }
+        }
 
 
-	/**
-	 * Validate input and set value
-	 */
-	public function validate()
-	{
-		$mandatory = $this->mandatory;
-		$options = deserialize($this->getPost($this->strName));
+        public function validate()
+        {
+          parent::validate();
 
-		if (is_array($options))
-		{
-			foreach ($options as $key=>$option)
-			{
-				$options[$key]['param'] = trim($option['param']);
-				$options[$key]['value'] = trim($option['value']);
-
-				if (strlen($options[$key]['param']) and strlen($options[$key]['value']))
-				{
-					$this->mandatory = false;
-				}
-			}
-		}
-
-		$varInput = $this->validator($options);
-
-		if (!$this->hasErrors())
-		{
-			$this->varValue = $varInput;
-		}
-
-		// Reset the property
-		if ($mandatory)
-		{
-			$this->mandatory = true;
-		}
-	}
+          if ( ! $this->hasErrors )
+          {
+            $this->varValue = $this->format_values( $this->varValue );
+          }
+        }
 
 
 	/**
@@ -122,8 +91,10 @@ class ParamWizard extends Widget
 	 */
 	public function generate()
 	{
-		$arrButtons = array('copy', 'up', 'down', 'delete');
+		$arrButtons = array('copy', 'delete');
 		$strCommand = 'cmd_' . $this->strField;
+
+                $values = $this->values;
 
 		// Change the order
 		if ($this->Input->get($strCommand) && is_numeric($this->Input->get('cid')) && $this->Input->get('id') == $this->currentRecord)
@@ -133,68 +104,47 @@ class ParamWizard extends Widget
 			switch ($this->Input->get($strCommand))
 			{
 				case 'copy':
-					array_insert($this->varValue, $this->Input->get('cid'), array($this->varValue[$this->Input->get('cid')]));
-					break;
-
-				case 'up':
-					$this->varValue = array_move_up($this->varValue, $this->Input->get('cid'));
-					break;
-
-				case 'down':
-					$this->varValue = array_move_down($this->varValue, $this->Input->get('cid'));
+					array_insert($values, $this->Input->get('cid'), array($values[$this->Input->get('cid')]));
 					break;
 
 				case 'delete':
-					$this->varValue = array_delete($this->varValue, $this->Input->get('cid'));
+					$values = array_delete($values, $this->Input->get('cid'));
 					break;
 			}
 
-			$this->Database->prepare("UPDATE " . $this->strTable . " SET " . $this->strField . "=? WHERE id=?")
-						   ->execute(serialize($this->varValue), $this->currentRecord);
+			$this->Database->prepare( "UPDATE " . $this->strTable . " SET " . $this->strField . "=? WHERE id=?" )
+                                       ->execute( $this->format_values( $values ), $this->currentRecord );
 
 			$this->redirect(preg_replace('/&(amp;)?cid=[^&]*/i', '', preg_replace('/&(amp;)?' . preg_quote($strCommand, '/') . '=[^&]*/i', '', $this->Environment->request)));
 		}
 
 		// Make sure there is at least an empty array
-		if (!is_array($this->varValue) || !$this->varValue[0])
+		if ( ! is_array( $values ) or empty( $values ) )
 		{
-			$this->varValue = array(array(''));
+                  $values = array( array( 'param' => '', 'value' => '' ) );
 		}
 
-		// Begin table
-		$return .= '<table cellspacing="0" cellpadding="0" class="tl_paramwizard" id="ctrl_'.$this->strId.'" summary="Param wizard">
-  <thead>
-    <tr>
-      <th>'.$GLOBALS['TL_LANG'][$this->strTable]['routeParam'].'</th>
-      <th>'.$GLOBALS['TL_LANG'][$this->strTable]['routeValue'].'</th>
-    </tr>
-  </thead>
-  <tbody>';
+                var_export( $values );
+                $template           = new BackendTemplate( 'widget_framework_routes_params' );
+                $template->strId    = $this->strId;
+                $template->strTable = $this->strTable;
+                $template->values   = $values;
+                $template->buttons  = $arrButtons;
 
-		// Add fields
-		for ($i=0; $i<count($this->varValue); $i++)
-		{
-			$return .= '
-    <tr>
-      <td><input type="text" name="'.$this->strId.'['.$i.'][param]" id="'.$this->strId.'_param_'.$i.'" class="tl_text_2" value="'.specialchars($this->varValue[$i]['param']).'" /></td>
-      <td><input type="text" name="'.$this->strId.'['.$i.'][value]" id="'.$this->strId.'_value_'.$i.'" class="tl_text_2" value="'.specialchars($this->varValue[$i]['value']).'" /></td>';
-
-			// Add row buttons
-			$return .= '
-      <td style="white-space:nowrap; padding-left:3px;">';
-
-			foreach ($arrButtons as $button)
-			{
-				$return .= '<a href="'.$this->addToUrl('&amp;'.$strCommand.'='.$button.'&amp;cid='.$i.'&amp;id='.$this->currentRecord).'" title="'.specialchars($GLOBALS['TL_LANG'][$this->strTable][$button][0]).'" onclick="Backend.optionsWizard(this, \''.$button.'\', \'ctrl_'.$this->strId.'\'); return false;">'.$this->generateImage($button.'.gif', $GLOBALS['TL_LANG'][$this->strTable][$button][0]).'</a> ';
-			}
-
-			$return .= '</td>
-    </tr>';
-		}
-
-		return $return.'
-  </tbody>
-  </table>';
+		return $template->parse();
 	}
+
+
+        public function format_values( $val )
+        {
+          $values = array();
+
+          foreach ( $val as $set ) 
+          {
+            $values[ $set[ 'param' ] ] = $set[ 'value' ];
+          }
+
+          return serialize( $values );
+        }
 }
 
