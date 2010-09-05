@@ -53,7 +53,7 @@ abstract class FwRegistered extends EModel
     $params = array();
     foreach ( $groups as $group )
     {
-      $query .= 'id = ? and ';
+      $query .= 'id = ? or ';
       $params[] = $group;
     }
 
