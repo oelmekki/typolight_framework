@@ -765,7 +765,7 @@ abstract class EModel extends Model
    {
      foreach ( $attributes as $attr => $value )
      {
-       if ( ! count( $his->filtered_attrs ) or in_array( $attr, $this->filtered_attrs ) )
+       if ( ! count( $this->filtered_attrs ) or in_array( $attr, $this->filtered_attrs ) )
        {
          $this->$attr = $value;
        }
@@ -783,7 +783,7 @@ abstract class EModel extends Model
    */
   public function create( $attributes )
   {
-    $this->setData( $attributes );
+    $this->attributes = $attributes;
     return $this->save();
   }
 
