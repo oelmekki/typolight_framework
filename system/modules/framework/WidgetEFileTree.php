@@ -160,7 +160,7 @@ class WidgetEFileTree extends Widget
                 // add a new file
                 if ( strlen( $path = $GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strField]['eval']['path'] ) )
                 {
-                  $strAddNew = '<p><a href="typolight/main.php?do=files&act=move&mode=2&pid=' . $path . '">' . $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'addNewFile' ] . '</a></p>';
+                  $strAddNew = '<p><a href="contao/main.php?do=files&act=move&mode=2&pid=' . $path . '">' . $GLOBALS[ 'TL_LANG' ][ 'MSC' ][ 'addNewFile' ] . '</a></p>';
                 }
 
 		return $strAddNew . '  <ul class="tl_listing'.(strlen($this->strClass) ? ' ' . $this->strClass : '').'" id="'.$this->strName.'">
@@ -381,7 +381,7 @@ class WidgetEFileTree extends Widget
 					}
 				}
 
-				$return .= '<a href="typolight/popup.php?src='.$currentEncoded.'" title="'.specialchars($GLOBALS['TL_LANG']['MSC']['view']).'" onclick="this.blur(); Backend.openWindow(this, '.$popupWidth.', '.$popupHeight.'); return false;" >' . $this->generateImage($objFile->icon).'</a> <label for="'.$this->strName.'_'.md5($currentFile).'">'.utf8_convert_encoding(basename($currentFile), $GLOBALS['TL_CONFIG']['characterSet']).'</label>'.$thumbnail.'</div> <div class="tl_right">';
+				$return .= '<a href="contao/popup.php?src='.$currentEncoded.'" title="'.specialchars($GLOBALS['TL_LANG']['MSC']['view']).'" onclick="this.blur(); Backend.openWindow(this, '.$popupWidth.', '.$popupHeight.'); return false;" >' . $this->generateImage($objFile->icon).'</a> <label for="'.$this->strName.'_'.md5($currentFile).'">'.utf8_convert_encoding(basename($currentFile), $GLOBALS['TL_CONFIG']['characterSet']).'</label>'.$thumbnail.'</div> <div class="tl_right">';
 
 				// Add checkbox or radio button
 				switch ($GLOBALS['TL_DCA'][$this->strTable]['fields'][$this->strField]['eval']['fieldType'])
