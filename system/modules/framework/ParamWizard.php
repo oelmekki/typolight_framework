@@ -124,7 +124,6 @@ class ParamWizard extends Widget
                   $values = array( array( 'param' => '', 'value' => '' ) );
 		}
 
-                var_export( $values );
                 $template           = new BackendTemplate( 'widget_framework_routes_params' );
                 $template->strId    = $this->strId;
                 $template->strTable = $this->strTable;
