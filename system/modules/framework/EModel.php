@@ -1765,8 +1765,7 @@ abstract class EModel extends Model
   /**
    * Get all descendants of current object, including itself - treeAssoc relationship
    *
-   * @param EModel the relative to test
-   * @return boolean the result
+   * @return array the descendants
    **/
   public function getDescendants()
   {
@@ -1782,6 +1781,31 @@ abstract class EModel extends Model
     }
 
     return $descendants;
+  }
+
+
+
+  /**
+   * Get all ancestors of current object, including itself - treeAssoc relationship
+   *
+   * @return array the ancestors
+   **/
+  public function getAncestors()
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $ancestors = array( $this );
+    $parent    = $this->treeParent();
+
+    if ( $parent->id )
+    {
+      $ancestors = array_merge( $ancestors, $parent->ancestors );
+    }
+
+    return $ancestors;
   }
 
 
