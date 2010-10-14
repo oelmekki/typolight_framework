@@ -1731,11 +1731,38 @@ abstract class EModel extends Model
       throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
     }
 
-    $children = $relative->descendants;
-    array_shift( $children );
-    $ids      = $relative->ids( $children );
+    if ( ! is_numeric( $relative ) )
+    {
+      $relative = $relative->id;
+    }
 
-    return in_array( $this->id, $ids );
+    return $relative == $this->pid;
+  }
+
+
+
+  /**
+   * Say if current object is descendant of given object - treeAssoc relationship
+   *
+   * @param EModel the relative to test
+   * @return boolean the result
+   **/
+  public function isDescendantOf( $relative )
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $ancestors = $this->ancestors;
+    array_shift( $ancestors );
+
+    if ( ! is_numeric( $relative ) )
+    {
+      $relative = $relative->id;
+    }
+
+    return in_array( $relative, $this->ids( $ancestors ) );
   }
 
 
@@ -1753,11 +1780,42 @@ abstract class EModel extends Model
       throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
     }
 
-    $children = $this->descendants;
+    $children = $this->treeChildren();
     array_shift( $children );
     $ids      = $this->ids( $children );
 
-    return in_array( $relative->id, $ids );
+    if ( ! is_numeric( $relative ) )
+    {
+      $relative = $relative->id;
+    }
+
+    return in_array( $relative, $ids );
+  }
+
+
+
+  /**
+   * Say if current object is ancestor of given object - treeAssoc relationship
+   *
+   * @param EModel the relative to test
+   * @return boolean the result
+   **/
+  public function isAncestorOf( $relative )
+  {
+    if ( ! $this->treeAssoc )
+    {
+      throw new Exception( get_class( $this ) . ' is not set as a tree association ( protected $treeAssoc = false; )' );
+    }
+
+    $descendants = $this->descendants;
+    array_shift( $descendants );
+
+    if ( ! is_numeric( $relative ) )
+    {
+      $relative = $relative->id;
+    }
+
+    return in_array( $relative, $this->ids( $descendants ) );
   }
 
 
