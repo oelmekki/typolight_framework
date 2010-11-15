@@ -36,32 +36,32 @@
  */
 class <?php echo $this->backendClass ?> extends BackendController
 {
-  protected $controller = '<?php echo str_replace( 'tl_', '', $this->table ) ?>';
-  protected $arrActions = array();
-
-
-
-  /**
-   * default action
-   */
-  protected function index()
-  {
-  }
-
-
-
-  public function setCreatedAt( $dca )
-  {
-    $record = $this->Database->prepare( 'select created_at from <?php echo $this->table ?> where id = ?' )
-                             ->execute( $dca->id );
-
-    $record->next();
-
-    if ( ! $record->created_at )
-    {
-      $this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
-                     ->execute( time(), $dca->id );
-    }
-  }
+	protected $controller = '<?php echo str_replace( 'tl_', '', $this->table ) ?>';
+	protected $arrActions = array();
+	
+	
+	
+	/**
+	 * default action
+	 */
+	protected function index()
+	{
+	}
+	
+	
+	
+	public function setCreatedAt( $dca )
+	{
+		$record = $this->Database->prepare( 'select created_at from <?php echo $this->table ?> where id = ?' )
+														 ->execute( $dca->id );
+	
+		$record->next();
+		
+		if ( ! $record->created_at )
+		{
+			$this->Database->prepare( 'update <?php echo $this->table ?> set created_at = ? where id = ?' )
+										 ->execute( time(), $dca->id );
+		}
+	}
 }
 
