@@ -104,7 +104,7 @@ class FwPage extends EModel
   public function getRoot()
   {
     $page = $this;
-    while ( $page->pid != 0 )
+    while ( ! ( $page->pid === 0 or $page->type == 'root' ) )
     {
       $page = new FwPage( $page->pid );
     }
