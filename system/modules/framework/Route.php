@@ -314,6 +314,60 @@ class Route extends EModel
       $alias = $record->alias;
     }
 
+		// route is relative to the current domain
+		elseif ( strpos( $this->resolveTo, 'domain:' ) === 0 )
+		{
+			$search = str_replace( 'domain:', '', $this->resolveTo );
+			$root = new FwPage();
+
+			// retrieve root
+			$host = str_replace( 'www.', '', $this->Environment->httpHost );
+			$record = $this->Database->prepare( 'select * from tl_page where dns like ?' )
+															 ->execute( '%' . $host . '%' );
+
+			if ( $record->next() )
+			{
+				$root->found = $record->row();
+			}
+
+			else
+			{
+				if ( ! $root->findBy( 'fallback', true ) )
+				{
+					$root->first( 'id', array( 'type = "root"' ) );
+				}
+			}
+
+			// search by title
+			if ( strpos( $search, 'title:' ) === 0 )
+			{
+				$search = str_replace( 'title:', '', $search );
+				$record = $this->Database->prepare( 'select * from tl_page where title like ?' )
+																 ->execute( '%' . $search . '%' );
+			}
+
+			// search by alias
+			else 
+			{
+				$record = $this->Database->prepare( 'select * from tl_page where alias like ?' )
+																 ->execute( '%' . $search . '%' );
+			}
+
+			$page = new FwPage();
+
+			while ( $record->next() )
+			{
+				$page->found = $record->row();
+				if ( $page->getRoot()->id == $root->id )
+				{
+					$alias = $page->alias;
+					break;
+				}
+			}
+
+		}
+
+		// resolveTo is the alias of the target page
     else
     {
       $alias = $this->resolveTo;
